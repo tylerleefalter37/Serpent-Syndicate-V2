@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Serpent Syndicate - Master's Edition</title>
+<style>
+  :root {
+    --bg-base: #0a0c0a;
+    --panel-bg: #111411;
+    --panel-border: #1e261e;
+    --silver-bright: #e2e8e2;
+    --silver-main: #9ca39c;
+    --silver-dim: #647064;
+    --silver-dark: #2a332a;
+    
+    --status-green: #4ade80;
+    --status-red: #ef4444;
+    --status-amber: #d97706;
+    --status-blue: #38bdf8;
+    --status-purple: #d946ef;
+    --status-exotic: #0ea5e9;
+    
+    --t0-col: #647064; --t1-col: #4ade80; --t2-col: #38bdf8; --t3-col: #3b82f6; --t4-col: #a855f7; 
+    --t5-col: #d946ef; --t6-col: #f59e0b; --t7-col: #ea580c; --t8-col: #ef4444; --t9-col: #10b981;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+  html, body { width: 100%; height: 100%; background: var(--bg-base); color: var(--silver-bright); display: flex; flex-direction: column; overflow: hidden; }
+
+  body::before {
+    content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(74, 222, 128, 0.03) 0%, transparent 65%);
+    pointer-events: none; z-index: 1;
+  }
+
+  header { flex-shrink: 0; background: #050605; border-bottom: 1px solid var(--status-green); padding: 6px 10px; display: flex; flex-direction: column; gap: 4px; z-index: 10; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; }
+  .brand-title { font-size: 13px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; }
+  .brand-title span { color: var(--status-green); text-shadow: 0 0 5px rgba(74,222,128,0.4); }
+
+  .hud-stats { display: flex; gap: 4px; overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
+  .hud-stats::-webkit-scrollbar { display: none; }
+  .hud-pill { background: #000; border: 1px solid var(--panel-border); padding: 3px 6px; border-radius: 3px; font-size: 10px; font-family: monospace; font-weight: bold; }
+
+  nav { flex-shrink: 0; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--panel-bg); border-bottom: 1px solid var(--panel-border); z-index: 9; }
+  .nav-btn { padding: 10px 4px; background: transparent; border: none; border-right: 1px solid var(--panel-border); border-bottom: 1px solid var(--panel-border); color: var(--silver-dim); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: 0.15s; text-align: center; }
+  .nav-btn:nth-child(3n) { border-right: none; }
+  .nav-btn:nth-child(n+7) { border-bottom: none; }
+  .nav-btn.active { background: rgba(74, 222, 128, 0.08); color: var(--status-green); box-shadow: inset 0 -2px 0 var(--status-green); }
+
+  main { flex: 1; overflow-y: auto; padding: 10px; padding-bottom: 70px; z-index: 2; }
+  .view-tab { display: none; flex-direction: column; gap: 10px; }
+  .view-tab.active { display: flex; }
+
+  .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 5px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .panel-header { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff; padding-bottom: 6px; border-bottom: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; }
+
+  .control-bar { display: flex; flex-wrap: wrap; gap: 6px; background: #050605; padding: 6px 8px; border-radius: 4px; border: 1px solid var(--panel-border); align-items: center; }
+  .control-group { display: flex; gap: 4px; align-items: center; border-right: 1px solid var(--panel-border); padding-right: 6px; }
+  .control-group:last-child { border-right: none; padding-right: 0; }
+  .control-label { font-size: 8.5px; font-weight: bold; color: var(--silver-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  button.btn { background: #000; border: 1px solid var(--silver-dim); color: var(--silver-bright); padding: 5px 9px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 3px; cursor: pointer; transition: 0.1s; }
+  button.btn:active { background: var(--silver-bright); color: #000; border-color: var(--silver-bright); }
+  button.btn:disabled { opacity: 0.35; cursor: not-allowed; border-color: var(--silver-dark); }
+  button.btn-green { background: #091209; border-color: var(--status-green); color: var(--status-green); }
+  button.btn-green:active { background: var(--status-green); color: #000; }
+  button.btn-danger { border-color: var(--status-red); color: var(--status-red); }
+  button.btn-danger:active { background: var(--status-red); color: #fff; }
+  button.btn-purple { border-color: var(--status-purple); color: var(--status-purple); }
+  button.btn-purple:active { background: var(--status-purple); color: #fff; }
+
+  .fleet-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  @media(min-width: 600px) { .fleet-grid { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); } }
+
+  .strain-card { background: #050605; border: 1px solid var(--panel-border); border-radius: 4px; padding: 10px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .strain-card.in-flight { border-left: 3px solid var(--status-green); }
+  .strain-card.damaged { border-left: 3px solid var(--status-red); }
+  
+  .bud-art-container { display: flex; gap: 10px; align-items: center; background: #080a08; border: 1px solid var(--panel-border); padding: 6px; border-radius: 3px; }
+  .bud-pixel-canvas { width: 64px; height: 64px; image-rendering: pixelated; border-radius: 2px; background: #000; flex-shrink: 0; border: 1px solid #142014; cursor: zoom-in; }
+
+  .spec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; background: #080a08; padding: 6px; border-radius: 3px; font-size: 9px; font-family: monospace; border: 1px solid var(--panel-border); }
+  .spec-grid span { color: var(--silver-dim); }
+
+  .badge { padding: 2px 4px; border-radius: 2px; font-size: 8px; font-weight: 900; font-family: monospace; background: #091209; color: var(--status-green); border: 1px solid var(--status-green); }
+  
+  .route-row { background: #050605; border: 1px solid var(--panel-border); border-radius: 3px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; }
+
+  .flight-bar-bg { width: 100%; height: 6px; background: #111; border: 1px solid #1a261a; border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .flight-bar-fill { height: 100%; background: var(--status-green); width: 0%; box-shadow: 0 0 6px var(--status-green);}
+
+  .auction-slot { background: #050605; border: 1px solid var(--panel-border); padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
+  .auction-timer-bg { width: 100%; height: 5px; background: #111; border: 1px solid var(--status-green); border-radius: 2px; overflow: hidden; }
+  .auction-timer-bar { height: 100%; background: var(--status-green); width: 100%; transition: width 0.1s linear;}
+  .auction-log { height: 44px; background: #080a08; border: 1px solid var(--panel-border); padding: 4px; font-size: 8.5px; font-family: monospace; overflow: hidden; border-radius: 3px; color: var(--silver-main); }
+
+  .fraction-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .pack-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+  select { background: #080a08; color: #fff; border: 1px solid var(--silver-dark); padding: 5px; font-size: 10px; border-radius: 3px; outline: none; font-weight: bold; cursor: pointer; }
+  
+  .check-item { display: flex; justify-content: space-between; align-items: center; background: #050605; padding: 8px 10px; border: 1px solid var(--panel-border); border-radius: 3px; font-size: 10px; }
+  .check-item.done { border-color: var(--status-green); background: rgba(74, 222, 128, 0.08); }
+
+  /* 3D Voxel Snake Inspector Modal */
+  #voxel-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+  #voxel-modal.open { display: flex; }
+  .modal-box { background: var(--panel-bg); border: 1px solid var(--status-green); border-radius: 8px; padding: 12px; max-width: 440px; width: 100%; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+  #inspect-canvas { width: 100%; height: auto; aspect-ratio: 1/1; background: #050705; border-radius: 4px; cursor: grab; image-rendering: pixelated; border: 1px solid var(--panel-border); }
+
+  #toast-rack { position: fixed; bottom: 16px; left: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 1000; pointer-events: none; }
+  .toast { background: #000; border: 1px solid var(--silver-dark); border-left: 3px solid var(--status-green); color: #fff; padding: 8px 12px; font-size: 11px; font-weight: bold; font-family: monospace; border-radius: 3px; box-shadow: 0 4px 15px rgba(0,0,0,0.9); animation: slideUp 0.2s, fadeOut 0.4s 2.6s forwards; pointer-events: auto;}
+  
+  @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(-5px); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand-title">SERPENT SYNDICATE <span>// V2.0 MORPH EDITION</span></div>
+    <div style="display:flex; gap:4px;">
+      <button class="btn" style="padding:3px 6px; font-size:8px;" onclick="saveGame()">SAVE</button>
+      <button class="btn" style="padding:3px 6px; font-size:8px;" onclick="loadGame()">LOAD</button>
+      <button class="btn btn-danger" style="padding:3px 6px; font-size:8px;" onclick="godMode()">HERPETOLOGIST</button>
+    </div>
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="hud-stats">
+        <div class="hud-pill">CASH: <span id="hud-funds" style="color:var(--status-green);">$0</span></div>
+        <div class="hud-pill">RACKS: <span id="hud-fleet-count">0</span></div>
+        <div class="hud-pill">HANDLERS: <span id="hud-pilot-count">0</span></div>
+        <div class="hud-pill">FEEDERS: <span id="hud-fuel" style="color:var(--status-amber);">0</span></div>
+      </div>
+      <div class="control-bar" style="padding:2px 4px; margin-left:4px;">
+        <button class="btn btn-green active" id="buy-1" style="padding:2px 4px; font-size:8px;" onclick="setBuyMode(1)">1x</button>
+        <button class="btn" id="buy-0.25" style="padding:2px 4px; font-size:8px;" onclick="setBuyMode(0.25)">25%</button>
+        <button class="btn" id="buy-0.5" style="padding:2px 4px; font-size:8px;" onclick="setBuyMode(0.5)">50%</button>
+        <button class="btn" id="buy-1.0" style="padding:2px 4px; font-size:8px;" onclick="setBuyMode(1.0)">MAX</button>
+      </div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="setTab('market')">Field Herping</button>
+  <button class="nav-btn" onclick="setTab('gacha')">Incubator Lab</button>
+  <button class="nav-btn" onclick="setTab('fleet')">Snake Racks</button>
+  <button class="nav-btn" onclick="setTab('pilots')">Handlers</button>
+  <button class="nav-btn" onclick="setTab('routes')">Reptile Expos</button>
+  <button class="nav-btn" onclick="setTab('auction')">Morph Auctions</button>
+  <button class="nav-btn" onclick="setTab('checklist')">Venom Lab</button>
+  <button class="nav-btn" onclick="setTab('upgrades')">Vivarium Tech</button>
+  <button class="nav-btn" onclick="setTab('gallery')">Serpentarium 🐍</button>
+</nav>
+
+<main>
+
+  <!-- TAB 1: REVOLVING FIELD HERPING MARKET (NO IMAGES FOR ZERO LAG) -->
+  <div id="tab-market" class="view-tab active">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Wild Herping & Designer Morph Drops</span>
+        <span style="font-size:10px; color:var(--silver-dim);">NEW FINDS: <span id="market-timer" style="font-size:12px; font-weight:bold; color:var(--status-green);">10.0</span>s</span>
+      </div>
+      <p style="font-size:10px; color:var(--silver-dim);">5 procedural snakes & rare morphs surface every 10 seconds. Bag a specimen to unveil its 512x512 3D Voxel morph in your Snake Racks.</p>
+      <div id="market-grid" class="fleet-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: INCUBATOR LAB -->
+  <div id="tab-gacha" class="view-tab">
+    <div class="panel">
+      <div class="panel-header">Egg Incubators & Designer Clutches</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; font-weight:bold; margin-bottom:6px;">COLUBRID & BALL CLUTCH [T1-T4] ($10K / Egg)</div>
+          <div class="pack-row">
+            <button class="btn" onclick="buySeeds(0, 1)">Pip 1x</button>
+            <button class="btn" onclick="buySeeds(0, 5)">Pip 5x</button>
+            <button class="btn btn-green" onclick="buySeeds(0, 10)">Pip 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-blue); font-weight:bold; margin-bottom:6px;">RECESSIVE MORPH PAIRING [T3-T6] ($100K / Egg)</div>
+          <div class="pack-row">
+            <button class="btn" style="border-color:var(--status-blue); color:var(--status-blue);" onclick="buySeeds(1, 1)">Pip 1x</button>
+            <button class="btn" style="border-color:var(--status-blue); color:var(--status-blue);" onclick="buySeeds(1, 5)">Pip 5x</button>
+            <button class="btn btn-green" onclick="buySeeds(1, 10)">Pip 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-purple); font-weight:bold; margin-bottom:6px;">HOT VENOMOUS IMPORTS [T5-T8] ($1.0M / Crate)</div>
+          <div class="pack-row">
+            <button class="btn btn-purple" onclick="buySeeds(2, 1)">Pip 1x</button>
+            <button class="btn btn-purple" onclick="buySeeds(2, 5)">Pip 5x</button>
+            <button class="btn btn-green" onclick="buySeeds(2, 10)">Pip 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-amber); font-weight:bold; margin-bottom:6px;">WORLD-FIRST PARADOX CLUTCH [T7-T10] ($5.0M / Egg)</div>
+          <div class="pack-row">
+            <button class="btn" style="border-color:var(--status-amber); color:var(--status-amber);" onclick="buySeeds(3, 1)">Pip 1x</button>
+            <button class="btn" style="border-color:var(--status-amber); color:var(--status-amber);" onclick="buySeeds(3, 5)">Pip 5x</button>
+            <button class="btn btn-green" onclick="buySeeds(3, 10)">Pip 10x</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Snake Handler Recruitment</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; font-weight:bold; margin-bottom:6px;">RACK TECHS [T1-T4] ($5K / Hire)</div>
+          <div class="pack-row">
+            <button class="btn" onclick="buyResumes(0, 1)">Hire 1x</button>
+            <button class="btn" onclick="buyResumes(0, 5)">Hire 5x</button>
+            <button class="btn btn-green" onclick="buyResumes(0, 10)">Hire 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-blue); font-weight:bold; margin-bottom:6px;">HOOK HANDLERS [T3-T6] ($50K / Hire)</div>
+          <div class="pack-row">
+            <button class="btn" style="border-color:var(--status-blue); color:var(--status-blue);" onclick="buyResumes(1, 1)">Hire 1x</button>
+            <button class="btn" style="border-color:var(--status-blue); color:var(--status-blue);" onclick="buyResumes(1, 5)">Hire 5x</button>
+            <button class="btn btn-green" onclick="buyResumes(1, 10)">Hire 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-purple); font-weight:bold; margin-bottom:6px;">VENOM MILKERS [T5-T8] ($250K / Hire)</div>
+          <div class="pack-row">
+            <button class="btn btn-purple" onclick="buyResumes(2, 1)">Hire 1x</button>
+            <button class="btn btn-purple" onclick="buyResumes(2, 5)">Hire 5x</button>
+            <button class="btn btn-green" onclick="buyResumes(2, 10)">Hire 10x</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px;">
+          <div style="font-size:10px; color:var(--status-amber); font-weight:bold; margin-bottom:6px;">MASTER HERPETOLOGISTS [T7-T10] ($1.0M / Hire)</div>
+          <div class="pack-row">
+            <button class="btn" style="border-color:var(--status-amber); color:var(--status-amber);" onclick="buyResumes(3, 1)">Hire 1x</button>
+            <button class="btn" style="border-color:var(--status-amber); color:var(--status-amber);" onclick="buyResumes(3, 5)">Hire 5x</button>
+            <button class="btn btn-green" onclick="buyResumes(3, 10)">Hire 10x</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Rodent Freezer & Heat Supply</span>
+        <span style="font-size:11px; font-weight:bold; color:var(--status-amber);">$<span id="fuel-price">2.85</span> / FEEDER</span>
+      </div>
+      <div class="fraction-row">
+        <button class="btn" onclick="buyFuelFixed(50000)">50K Feed</button>
+        <button class="btn" onclick="buyFuelFixed(250000)">250K Feed</button>
+        <button class="btn" onclick="buyFuelFixed(1000000)">1M Feed</button>
+        <button class="btn btn-green" onclick="buyFuelFixed('MAX')">Max Freezer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SNAKE RACKS (INVENTORY) -->
+  <div id="tab-fleet" class="view-tab">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Active Snake Enclosures</span>
+        <div style="display:flex; gap:4px;">
+          <button class="btn btn-green" onclick="autoAssignPilots()">Auto-Handler</button>
+          <button class="btn btn-green" onclick="autoAssignRoutes()">Auto-Expo</button>
+          <button class="btn btn-green" onclick="dispatchAll()">Show All</button>
+          <button class="btn" onclick="maintainAll()">Shed/Mist All</button>
+        </div>
+      </div>
+      
+      <div class="control-bar">
+        <div class="control-group">
+          <span class="control-label">Sort:</span>
+          <button class="btn" style="padding:4px 6px; font-size:8px;" onclick="sortHangar('val')">VAL</button>
+          <button class="btn" style="padding:4px 6px; font-size:8px;" onclick="sortHangar('tier')">TIER</button>
+          <button class="btn" style="padding:4px 6px; font-size:8px;" onclick="sortHangar('range')">DIST</button>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Family:</span>
+          <select id="fleet-role-filter" onchange="filterHangarRole(this.value)" style="padding:3px; font-size:9px; width:auto;">
+            <option value="ALL">All Families</option>
+            <option value="COBRA">Cobra / Elapid</option>
+            <option value="RATTLER">Rattlesnake</option>
+            <option value="VIPER">Bush / Gaboon Viper</option>
+            <option value="PYTHON">Python / Boa</option>
+            <option value="COLUBRID">Colubrid / Boomslang</option>
+            <option value="ARBOREAL">Arboreal Percher</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Tier:</span>
+          <select id="fleet-tier-filter" onchange="filterHangarTier(this.value)" style="padding:3px; font-size:9px; width:auto;">
+            <option value="ALL">All Tiers</option>
+            <option value="0">T1</option><option value="1">T2</option><option value="2">T3</option><option value="3">T4</option><option value="4">T5</option>
+            <option value="5">T6</option><option value="6">T7</option><option value="7">T8</option><option value="8">T9</option><option value="9">T10</option>
+          </select>
+        </div>
+        <button class="btn btn-green" style="padding:4px 6px; font-size:8px;" onclick="importStrain()">Import Base36</button>
+      </div>
+
+      <div class="fraction-row">
+        <button class="btn btn-danger" onclick="quickSellStrains(0)">Sell T1</button>
+        <button class="btn btn-danger" onclick="quickSellStrains(1)">Sell T2&lt;</button>
+        <button class="btn btn-danger" onclick="quickSellStrains(2)">Sell T3&lt;</button>
+        <button class="btn btn-danger" onclick="quickSellStrains(3)">Sell T4&lt;</button>
+      </div>
+
+      <div id="fleet-list" class="fleet-grid"></div>
+    </div>
+  </div>
+  
+  <!-- TAB: SERPENTARIUM GALLERY -->
+  <div id="tab-gallery" class="view-tab">
+    <div class="panel">
+      <div class="panel-header"><span>Serpentarium Sanctuary Vault 🐍</span></div>
+      <p style="font-size:10px; color:var(--silver-dim);">Lock your deadliest & rarest 512x512 3D Voxel Snake Morphs forever. Tap any snake to rotate in 3D.</p>
+      <div id="gallery-grid" class="fleet-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: HANDLERS -->
+  <div id="tab-pilots" class="view-tab">
+    <div class="panel">
+      <div class="panel-header"><span>Handler Roster</span></div>
+      
+      <div class="control-bar">
+        <div class="control-group">
+          <span class="control-label">Sort:</span>
+          <button class="btn" style="padding:4px 6px; font-size:8px;" onclick="sortPilots('val')">VAL</button>
+          <button class="btn" style="padding:4px 6px; font-size:8px;" onclick="sortPilots('tier')">TIER</button>
+        </div>
+        <div class="control-group">
+          <span class="control-label">Tier:</span>
+          <select id="pilot-tier-filter" onchange="filterPilotTier(this.value)" style="padding:3px; font-size:9px; width:auto;">
+            <option value="ALL">All Tiers</option>
+            <option value="0">T1</option><option value="1">T2</option><option value="2">T3</option><option value="3">T4</option><option value="4">T5</option>
+            <option value="5">T6</option><option value="6">T7</option><option value="7">T8</option><option value="8">T9</option><option value="9">T10</option>
+          </select>
+        </div>
+        <button class="btn btn-green" style="padding:4px 6px; font-size:8px;" onclick="importCourier()">Import Base36</button>
+      </div>
+
+      <div class="fraction-row">
+        <button class="btn btn-danger" onclick="quickSellPilots(0)">Fire T1</button>
+        <button class="btn btn-danger" onclick="quickSellPilots(1)">Fire T2&lt;</button>
+        <button class="btn btn-danger" onclick="quickSellPilots(2)">Fire T3&lt;</button>
+        <button class="btn btn-danger" onclick="quickSellPilots(3)">Fire T4&lt;</button>
+      </div>
+
+      <div id="pilots-grid" class="fleet-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 5: REPTILE EXPOS -->
+  <div id="tab-routes" class="view-tab">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Reptile Expos & Venom Labs (400)</span>
+        <select id="route-cat-filter" onchange="filterRouteCategory(this.value)" style="padding:3px; font-size:9px; width:auto;">
+          <option value="ALL">All Expos</option>
+          <option value="COBRA">Cobra / Elapid Demand</option>
+          <option value="RATTLER">Rattlesnake Demand</option>
+          <option value="VIPER">Viper Demand</option>
+          <option value="PYTHON">Python / Boa Demand</option>
+          <option value="COLUBRID">Colubrid / Boomslang Demand</option>
+          <option value="ARBOREAL">Arboreal Demand</option>
+        </select>
+      </div>
+      <div id="routes-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 6: MORPH AUCTIONS -->
+  <div id="tab-auction" class="view-tab">
+    <div class="panel">
+      <div class="panel-header"><span>Rare Morph Auction House</span><span style="color:var(--status-amber);"><span id="auction-count">0</span>/10 LANES</span></div>
+      <p style="font-size:10px; color:var(--silver-dim);">10 live collector & antivenom lab bidding lanes with overtime sniping and bidding wars.</p>
+      
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-green" style="flex:1; padding:8px;" onclick="fillAuctions('planes')">Auto-Fill 10 Cheapest Snakes</button>
+        <button class="btn btn-green" style="flex:1; padding:8px;" onclick="fillAuctions('pilots')">Auto-Fill 10 Novice Handlers</button>
+      </div>
+
+      <div id="auction-idle" style="text-align:center; padding:16px; color:var(--silver-dim); font-size:11px;">Lanes empty. Move surplus snakes to the auction block.</div>
+      <div id="auction-board" class="fleet-grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 7: VENOM LAB & AUTOMATIONS -->
+  <div id="tab-checklist" class="view-tab">
+    <div class="panel">
+      <div class="panel-header">Facility Automations</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="check-item">
+          <div><strong>Auto-Expo Circuit:</strong> Automatically dispatches snakes to expos upon return.</div>
+          <button id="chk-autoloop" class="btn" onclick="toggleAutoLoop()">ENABLE</button>
+        </div>
+        <div class="check-item">
+          <div><strong>Auto Humidity & Shed Soak:</strong> Automatically restores vitality if scale health drops below 45%.</div>
+          <button id="chk-automro" class="btn" onclick="toggleAutoMRO()">ENABLE</button>
+        </div>
+        <div class="check-item">
+          <div><strong>Auto Feeder Restock:</strong> Buys 100K Feeders when freezer stock drops below 50K.</div>
+          <button id="chk-autorefuel" class="btn" onclick="toggleAutoRefuel()">ENABLE</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Antivenom Lab & Collector Bounties</span>
+        <button class="btn btn-green" style="padding:2px 6px; font-size:8px;" onclick="refreshSideMissions()">Cycle Contracts</button>
+      </div>
+      <p style="font-size:10px; color:var(--silver-dim); margin-bottom:4px;">Exhibit requested snake families at target expos to earn cash grants and rare clutches.</p>
+      <div id="side-missions-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Herpetology Milestones</div>
+      <div id="milestone-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 8: VIVARIUM TECH UPGRADES -->
+  <div id="tab-upgrades" class="view-tab">
+    <div class="panel">
+      <div class="panel-header">Facility Upgrades</div>
+      <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px; background:#000;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:11px;">
+          <span style="font-weight:bold; color:var(--status-green);">Custom Acrylic 8-Foot Expo Displays</span>
+          <span style="color:var(--silver-dim);">Lvl <span id="upg-mkt-lvl">0</span> (+<span id="upg-mkt-pct">0</span>%)</span>
+        </div>
+        <div style="font-size:9.5px; color:var(--silver-dim); margin-bottom:6px;">Permanently boosts expo & venom extraction yields by +5% per level.</div>
+        <button class="btn btn-green" style="width:100%;" onclick="buyUpgrade('mkt')">Upgrade ($<span id="upg-mkt-cost">100000</span>)</button>
+      </div>
+      <div style="border:1px solid var(--panel-border); padding:8px; border-radius:3px; background:#000;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:11px;">
+          <span style="color:var(--status-blue); font-weight:bold;">Herpstat Proportional Heat & Mist Racks</span>
+          <span style="color:var(--silver-dim);">Lvl <span id="upg-eng-lvl">0</span> (-<span id="upg-eng-pct">0</span>%)</span>
+        </div>
+        <div style="font-size:9.5px; color:var(--silver-dim); margin-bottom:6px;">Permanently reduces facility-wide Feeder/Heat consumption by 2% per level (Max 70%).</div>
+        <button class="btn" style="border-color:var(--status-blue); color:var(--status-blue); width:100%;" onclick="buyUpgrade('eng')">Upgrade ($<span id="upg-eng-cost">150000</span>)</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- 60 FPS 3D VOXEL SNAKE INSPECTOR MODAL -->
+<div id="voxel-modal" onclick="if(event.target.id==='voxel-modal') closeInspectModal()">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span id="modal-title" style="font-size:12px; font-weight:900; color:var(--status-green);">3D Serpent Inspector</span>
+      <button class="btn btn-danger" onclick="closeInspectModal()">CLOSE ✕</button>
+    </div>
+    <canvas id="inspect-canvas" width="512" height="512"></canvas>
+    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--silver-dim); font-family:monospace;">
+      <span id="modal-sub">Family: COBRA</span>
+      <span>🖱️ Drag to Rotate 3D (60 FPS)</span>
+    </div>
+  </div>
+</div>
+
+<div id="toast-rack"></div>
+
+<script>
+  /* ================= 9,600 SNAKE MORPH & GENE COMBINATIONS ================= */
+  // 10 Primary Color Morphs (Applied universally across all 20 species in 3D!)
+  const TREE_PREFIXES = [
+    "Wild-Type",    // 0: Natural species coloration
+    "Albino",       // 1: Amelanistic buttercup yellow, sunglow orange & white with ruby-red eyes
+    "Piebald",      // 2: High-white recessive pied saddles interrupting the species/morph pattern
+    "Axanthic",     // 3: Monochrome silver, stormcloud grey, charcoal & frost white
+    "Melanistic",   // 4: Hyper-melanistic obsidian black dragon scales with oil-slick sheen
+    "Leucistic",    // 5: Pure ivory-white Blue-Eyed Lucy from snout to tail tip
+    "Hypo-Sunset",  // 6: Blazing neon tangerine, magma red-orange & peach scales
+    "Blue-Phase",   // 7: Electric cyan, turquoise & deep cobalt blue scales
+    "Lavender",     // 8: Pastel violet-purple base scales with canary-yellow saddles
+    "Paradox"       // 9: Chimera morph splashed with erratic black, neon orange & white patches
+  ]; // 10
+
+  // 8 Secondary Pattern & Scale Modifiers (Applied to dorsal scale math!)
+  const TREE_ORIGINS = [
+    "Locality",     // 0: Classic species pattern (Diamonds / Saddles / Bands / Hood Spectacle)
+    "Pinstripe",    // 1: Continuous thin racing stripe running down the dorsal spine
+    "Clown-Back",   // 2: Bold dorsal tear-drop blotches & reduced lateral pattern
+    "Tessera",      // 3: Checkered lateral flanks with a clean dorsal bar
+    "Motley",       // 4: Connected chain-link dorsal circles
+    "Granite",      // 5: Fine speckled peppering across every scale
+    "Aztec",        // 6: Zig-zag geometric lightning pattern
+    "Bloodred"      // 7: Deep crimson-suffused dorsal scales
+  ]; // 8
+
+  const TREE_SPECIES = [
+    "King Cobra", "Monocled Cobra", "Black Mamba",
+    "Western Diamondback", "Timber Rattlesnake", "Eastern Diamondback",
+    "Gaboon Viper", "Variable Bush Viper", "Rhinoceros Viper",
+    "Green Tree Python", "Emerald Tree Boa", "Eyelash Palm Viper", "Blue Insularis Viper",
+    "Ball Python", "Reticulated Python", "Brazilian Rainbow Boa",
+    "Dispholidus Boomslang", "Western Hognose", "California Kingsnake", "False Water Cobra"
+  ]; // 20
+
+  const TREE_STYLES = ["COBRA", "RATTLER", "VIPER", "ARBOREAL", "PYTHON", "COLUBRID"]; // 6
+
+  const P_FIRST = ["Austin", "Steve", "Chandler", "Dingo", "Romulus", "Kenji", "Elena", "Marcus", "Sora", "Takeshi", "Chloe", "Ren", "Yui", "Dante", "Kaito", "Satoshi", "Nadia", "Taro", "Freya", "Enzo"];
+  const P_LAST = ["Stevens", "Irwin", "Winkel", "Dinkelman", "Whitaker", "Vance", "Ito", "Takahashi", "Kovac", "Nakamura", "Saito", "Kato", "Moreau", "Yamada", "Reyes", "Matsumoto", "Kimura", "Hayashi", "Mercer", "Mori"];
+  const P_CALL = ["'Double-Hook'", "'Venom-Proof'", "'Tailer'", "'Steady-Tong'", "'Fang-Master'", "'Whisperer'", "'Chondro-King'", "'Zero-Bite'"];
+  const B_TYPES = ["VENOM","SPEED","FEED","CARE"]; 
+
+  const TIERS = [
+    { tier: 1, name: "Tier I: Normal", color: "var(--t0-col)", baseVal: 50000 },
+    { tier: 2, name: "Tier II: Pastel", color: "var(--t1-col)", baseVal: 150000 },
+    { tier: 3, name: "Tier III: Single-Gene", color: "var(--t2-col)", baseVal: 500000 },
+    { tier: 4, name: "Tier IV: Double-Het", color: "var(--t3-col)", baseVal: 1500000 },
+    { tier: 5, name: "Tier V: Designer Morph", color: "var(--t4-col)", baseVal: 5000000 },
+    { tier: 6, name: "Tier VI: Hot Elapid", color: "var(--t5-col)", baseVal: 15000000 },
+    { tier: 7, name: "Tier VII: Super-Morph", color: "var(--t6-col)", baseVal: 40000000 },
+    { tier: 8, name: "Tier VIII: Apex Viper", color: "var(--t7-col)", baseVal: 100000000 },
+    { tier: 9, name: "Tier IX: Paradox Chimera", color: "var(--t8-col)", baseVal: 250000000 },
+    { tier: 10, name: "Tier X: World-First God", color: "var(--t9-col)", baseVal: 500000000 }
+  ];
+
+  const ZONE_CAT = {
+    COBRA: ["Bangkok Venom Institute","King Cobra Sanctuary","Elapid Antivenom Lab","Serpentarium Royal"],
+    RATTLER: ["Sonoran Desert Expo","Southwest Rattler Symposium","Crotalus Research Center","Phoenix Herp Show"],
+    VIPER: ["Central African Vivarium","Gaboon & Atheris Con","Keeled Scale Showcase","Rainforest Viper Hall"],
+    ARBOREAL: ["Chondro & Corallus Expo","Canopy Perch Conservatory","Biak & Sorong Summit","Neotropical Tree Show"],
+    PYTHON: ["Tinley Park NARBC","Daytona Breeders Expo","Columbus Reptile Expo","Royal Morph Showcase"],
+    COLUBRID: ["Boomslang & Rear-Fang Con","North American Colubrid Show","Hognose & Kingsnake Gala","Herpetology Guild"]
+  };
+
+  const MILESTONES = [
+    { id: "m1", title: "First Expo Table", desc: "Send a snake to an expo or lab.", reward: 250000, req: s => s.fleet.some(p => p.status === 'IN_FLIGHT' || p.expRev > 0) },
+    { id: "m2", title: "Full Snake Rack", desc: "Keep 5 or more snakes in your racks.", reward: 1000000, req: s => s.fleet.length >= 5 },
+    { id: "m3", title: "Venom Crew", desc: "Hire 5 or more handlers.", reward: 750000, req: s => s.pilots.length >= 5 },
+    { id: "m4", title: "National Breeder", desc: "Unlock an expo > 3,000 Miles.", reward: 2000000, req: s => s.routes.some(r => r.unlocked && r.dist >= 3000) },
+    { id: "m5", title: "Hood Up", desc: "Acquire a COBRA specimen.", reward: 3000000, req: s => s.fleet.some(p => p.role === 'COBRA') },
+    { id: "m6", title: "Hot Room Permit", desc: "Acquire a Tier V or higher snake.", reward: 8000000, req: s => s.fleet.some(p => p.tierIndex >= 4) },
+    { id: "m7", title: "Master Handler", desc: "Hire a Tier V or higher handler.", reward: 4000000, req: s => s.pilots.some(p => p.tierIndex >= 4) },
+    { id: "m8", title: "Deep Freezer", desc: "Stock over 500,000 Feeder units.", reward: 2500000, req: s => s.fuelReserve >= 500000 },
+    { id: "m9", title: "Reptile Tycoon", desc: "Amass over $100,000,000.", reward: 20000000, req: s => s.funds >= 100000000 },
+    { id: "m10", title: "Serpent Facility", desc: "Expand to 10 active snake enclosures.", reward: 5000000, req: s => s.fleet.length >= 10 },
+    { id: "m11", title: "Morph Auctioneer", desc: "Sell a snake at the Morph Auctions.", reward: 1500000, req: s => s.statAuctionsSold > 0 },
+    { id: "m12", title: "Local Rehome", desc: "Rehome a snake locally.", reward: 1000000, req: s => s.statPlanesScrapped > 0 },
+    { id: "m13", title: "Global Antivenom", desc: "Unlock an expo > 6,500 Miles.", reward: 6000000, req: s => s.routes.some(r => r.unlocked && r.dist >= 6500) },
+    { id: "m14", title: "Council of Keepers", desc: "Employ 3 or more Tier VII+ Herpetologists.", reward: 15000000, req: s => s.pilots.filter(p => p.tierIndex >= 6).length >= 3 },
+    { id: "m15", title: "World-First Paradox", desc: "Acquire a Tier X World-First snake.", reward: 50000000, req: s => s.fleet.some(p => p.tierIndex === 9) }
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  /* ============================================================================
+     512x512 SPARSE 3D VOXEL SNAKE & UNIVERSAL MORPH ENGINE (VoxelSnakeEngine)
+     - Combines Species Anatomy + 10 Color Morphs + 8 Pattern Modifiers in 3D
+     ============================================================================ */
+  class VoxelSnakeEngine {
+    constructor(canvas) {
+      this.width = 512;
+      this.height = 512;
+      this.canvas = canvas || document.createElement('canvas');
+      this.canvas.width = 512;
+      this.canvas.height = 512;
+      this.ctx = this.canvas.getContext('2d');
+
+      this.grid = new Uint8Array(256 * 256 * 256);
+      this.stampGrid = new Uint16Array(256 * 256 * 256);
+      this.currentStamp = 1;
+
+      this.occupiedList = new Int32Array(450000);
+      this.occupiedCount = 0;
+
+      const MAX_SURF = 230000;
+      this.surfX = new Int16Array(MAX_SURF);
+      this.surfY = new Int16Array(MAX_SURF);
+      this.surfZ = new Int16Array(MAX_SURF);
+      this.surfColTop = new Uint32Array(MAX_SURF);
+      this.surfColLeft = new Uint32Array(MAX_SURF);
+      this.surfColRight = new Uint32Array(MAX_SURF);
+      this.surfCount = 0;
+
+      this.noiseLUT = new Float32Array(32 * 32 * 32);
+      this.zBuf = new Float32Array(512 * 512);
+      this.imgData = this.ctx.createImageData(512, 512);
+      this.pixels = new Uint32Array(this.imgData.data.buffer);
+
+      this.paletteRGB = new Uint32Array(256);
+      this.materialPriority = new Uint8Array(256);
+
+      this.yaw = 0.42;
+      this.pitch = 0.28;
+      this.scale = 1.95;
+      this.seed = 777;
+    }
+
+    initRNG(seed) {
+      this.seed = (seed >>> 0) || 777;
+      let a = this.seed;
+      this.rand = () => {
+        let t = (a += 0x6D2B79F5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+      for (let i = 0; i < 32768; i++) {
+        this.noiseLUT[i] = this.rand() * 2 - 1;
+      }
+    }
+
+    fastNoise(x, y, z) {
+      return this.noiseLUT[(x & 31) | ((y & 31) << 5) | ((z & 31) << 10)];
+    }
+
+    range(min, max) { return min + this.rand() * (max - min); }
+    pick(arr) { return arr[Math.floor(this.rand() * arr.length)]; }
+
+    registerColor(idx, hex, priority) {
+      this.paletteRGB[idx] = parseInt(hex.slice(1), 16);
+      this.materialPriority[idx] = priority;
+    }
+
+    /**
+     * Universal Species + Morph + Pattern Gene Palette Builder:
+     * 1. First sets the natural Wild-Type baseline for the species (`sp`).
+     * 2. Then overrides or mutates the color channels based on `morphIdx` (`0..9`) and `geneIdx` (`0..7`).
+     */
+    setupSnakePalettes(sp, role, tierIdx, morphIdx = 0, geneIdx = 0) {
+      // Step 1: Natural Wild-Type Baseline per Species
+      let primary = ['#1c1915', '#2e2922', '#423b31', '#595042', '#736756', '#8f816c'];
+      let pattern = ['#4a3519', '#6b4d24', '#8f6830', '#b5853d', '#dba34f', '#f5bf69'];
+      let belly   = ['#8c8678', '#aba494', '#c9c2b0', '#e0d9c8', '#f2ece0', '#ffffff'];
+      let paradox = ['#ff5500', '#ff8800', '#111115', '#ffffff'];
+      this.patternStyle = 'saddles';
+      this.morphIdx = morphIdx;
+      this.geneIdx = geneIdx;
+
+      if (sp.includes("Green Tree") || sp.includes("Emerald") || sp.includes("Boomslang")) {
+        primary = ['#0b2e13', '#144d20', '#207031', '#319647', '#48bf62', '#6be885'];
+        pattern = ['#6e8514', '#96b51b', '#bfe624', '#dcf745', '#eefc7c', '#ffffff'];
+        belly   = ['#5e7822', '#82a630', '#a8d442', '#ccf266', '#e8ff99', '#f7ffd4'];
+        this.patternStyle = 'diamonds';
+      } else if (sp.includes("Blue Insularis")) {
+        primary = ['#082233', '#103b57', '#1a5982', '#287ab0', '#3d9ede', '#62c2ff'];
+        pattern = ['#0b1929', '#142d4a', '#1f4470', '#2e609e', '#4380cc', '#66a3f2'];
+        belly   = ['#184563', '#296b96', '#3d94cc', '#59b8f5', '#82d1ff', '#b5e5ff'];
+        this.patternStyle = 'diamonds';
+      } else if (sp.includes("Eyelash")) {
+        primary = ['#4a3308', '#73500d', '#9e6f14', '#c98f1c', '#f2b026', '#ffd14d'];
+        pattern = ['#591616', '#852020', '#b22b2b', '#de3838', '#ff5757', '#ff8585'];
+        this.patternStyle = 'saddles';
+      } else if (sp.includes("Kingsnake")) {
+        primary = ['#0a0a0d', '#14141a', '#202029', '#2e2e3b', '#3d3d4f', '#505066'];
+        pattern = ['#6e0b0b', '#991111', '#c71818', '#eb2626', '#ff4242', '#ff7070'];
+        this.patternStyle = 'bands';
+      } else if (sp.includes("Diamondback") || sp.includes("Rattlesnake")) {
+        primary = ['#29221a', '#3d3327', '#544736', '#6e5d47', '#8a755a', '#a89070'];
+        pattern = ['#120e0a', '#1f1812', '#30251c', '#453628', '#d9ceb8', '#f5ebd6'];
+        this.patternStyle = 'diamonds';
+      } else if (sp.includes("Gaboon") || sp.includes("Rhinoceros")) {
+        primary = ['#211824', '#36273b', '#4d3854', '#694d73', '#876594', '#a882b8'];
+        pattern = ['#3d2e1e', '#5e472f', '#826342', '#a88259', '#cfb18c', '#f2dec2'];
+        this.patternStyle = 'diamonds';
+      } else if (sp.includes("Bush Viper")) {
+        primary = ['#1b2e10', '#2d4d1b', '#437029', '#5c963b', '#7ec252', '#a8eb76'];
+        pattern = ['#4a2c0b', '#734512', '#9e601b', '#c97d26', '#f29e38', '#ffc266'];
+        this.patternStyle = 'diamonds';
+      } else if (sp.includes("King Cobra") || sp.includes("Monocled") || sp.includes("Mamba") || sp.includes("Water Cobra")) {
+        primary = ['#101210', '#1c201c', '#2b302b', '#3d453d', '#525c52', '#6b786b'];
+        pattern = ['#5c4312', '#87631b', '#b58626', '#e0a934', '#ffca4b', '#ffe482'];
+        this.patternStyle = 'hood';
+      }
+
+      // Step 2: Apply Universal Color Morph Overrides (`morphIdx` 0..9) Across ANY Species!
+      if (morphIdx === 1) {
+        // ALBINO (Amelanistic Sunglow Yellow, Tangerine & Pure White)
+        primary = ['#8c650e', '#b58416', '#deA621', '#f7c436', '#ffe066', '#fff2a6'];
+        pattern = ['#9e3b12', '#c74d1a', '#eb6328', '#ff8042', '#ffa370', '#ffffff'];
+        belly   = ['#a89f8e', '#c7beac', '#e0d8c5', '#f2ece0', '#faf7f0', '#ffffff'];
+      } else if (morphIdx === 2) {
+        // PIEBALD (High-White Recessive Pied — uses bright porcelain white belly/pied channel 30..35)
+        belly   = ['#9ea1a3', '#bdbfc2', '#d9dbde', '#ebedef', '#f7f9fa', '#ffffff'];
+      } else if (morphIdx === 3) {
+        // AXANTHIC (Stormcloud Silver, Charcoal & Frost Monochrome)
+        primary = ['#0d0f12', '#181c21', '#262b33', '#363d47', '#49525e', '#606b7a'];
+        pattern = ['#4a5059', '#666e7a', '#858f9e', '#a6b0bf', '#c8d1de', '#ebf2fa'];
+        belly   = ['#787e87', '#969da8', '#b5bcc7', '#d1d7e0', '#ebeef5', '#ffffff'];
+      } else if (morphIdx === 4) {
+        // MELANISTIC (Jet-Black Dragon / IMG with Oil-Slick Indigo Sheen)
+        primary = ['#040508', '#090b12', '#111521', '#1a2133', '#26304a', '#354266'];
+        pattern = ['#08060f', '#110d21', '#1c1636', '#2a214f', '#3c306e', '#524291'];
+        belly   = ['#0a0b10', '#141621', '#202436', '#2e334d', '#3e4566', '#525b82'];
+      } else if (morphIdx === 5) {
+        // LEUCISTIC (Pure Ivory-Porcelain White Blue-Eyed Lucy)
+        primary = ['#8a8d91', '#a8acb0', '#c4c9cf', '#dde2e6', '#f0f4f7', '#ffffff'];
+        pattern = ['#969a9e', '#b2b6ba', '#cfd4d8', '#e6eaed', '#f5f8fa', '#ffffff'];
+        belly   = ['#9ea2a6', '#b8bcbf', '#d4d8db', '#ebeef0', '#f7f9fa', '#ffffff'];
+      } else if (morphIdx === 6) {
+        // HYPO-SUNSET (Blazing Neon Magma Orange, Coral Red & Peach)
+        primary = ['#4a1209', '#731d0f', '#9e2917', '#cc3922', '#f25235', '#ff7859'];
+        pattern = ['#6e350c', '#994b12', '#c7651a', '#f08326', '#ffa647', '#ffd180'];
+      } else if (morphIdx === 7) {
+        // BLUE-PHASE (Electric Cyan, Turquoise & Deep Cobalt)
+        primary = ['#071f2e', '#0e364f', '#175275', '#22729e', '#3296c7', '#4fc0f0'];
+        pattern = ['#092b29', '#124a46', '#1c6e68', '#29968e', '#3dc2b8', '#66f0e5'];
+      } else if (morphIdx === 8) {
+        // LAVENDER (Pastel Lavender-Violet Base with Canary-Yellow Saddles)
+        primary = ['#2b1e38', '#443059', '#61457d', '#825ea6', '#a67ccc', '#cca3f2'];
+        pattern = ['#78560e', '#a37716', '#cf9921', '#f5bc33', '#ffd659', '#ffea8c'];
+      } else if (morphIdx === 9) {
+        // PARADOX (Chimera splashes of Jet-Black, Neon Orange & Pure White)
+        paradox = ['#0a0b0e', '#ff5519', '#ff9924', '#ffffff'];
+      }
+
+      // Secondary Gene (`geneIdx === 7`: Bloodred suffusion)
+      if (geneIdx === 7 && morphIdx !== 5) {
+        pattern = ['#450808', '#6e0e0e', '#991616', '#c42121', '#eb3434', '#ff5c5c'];
+      }
+
+      // 1..5: Bioactive Cypress Bark, Ghostwood Perch & Basking Slate (Priority 2)
+      ['#1a1410', '#292019', '#3b2e24', '#524033', '#6b5443'].forEach((c, i) => this.registerColor(1 + i, c, 2));
+      // 6..9: Sphagnum Moss & Rainforest Fern Tufts (Priority 2)
+      ['#162b12', '#24451d', '#35632b', '#4b873d'].forEach((c, i) => this.registerColor(6 + i, c, 2));
+
+      // 10..15: Primary Dorsal Scales (Priority 5)
+      primary.forEach((c, i) => this.registerColor(10 + i, c, 5));
+      // 20..25: Secondary Saddle / Diamond / Band Scales (Priority 5)
+      pattern.forEach((c, i) => this.registerColor(20 + i, c, 5));
+      // 30..35: Ventral Belly Scutes & Piebald White Patches (Priority 5)
+      belly.forEach((c, i) => this.registerColor(30 + i, c, 5));
+
+      // 40..46: Eyes, Forked Tongue, Hollow Fangs & Keratin Rattle (Priority 6)
+      this.registerColor(40, '#050505', 6); // Vertical slit pupil
+      this.registerColor(41, '#ffffff', 6); // Specular eye glint & fangs
+      this.registerColor(42, '#ef4444', 6); // Ruby Albino iris / Forked tongue base
+      this.registerColor(43, '#4ade80', 6); // Emerald Boomslang eye
+      this.registerColor(44, '#f59e0b', 6); // Golden viper iris
+      this.registerColor(45, '#bfa982', 6); // Rattlesnake keratin rattle light
+      this.registerColor(46, '#786648', 6); // Rattlesnake keratin rattle groove
+      this.registerColor(47, '#38bdf8', 6); // Blue-Eyed Leucistic iris
+
+      // 50..53: Paradox Chimera Splash Colors (Priority 5)
+      paradox.forEach((c, i) => this.registerColor(50 + i, c, 5));
+    }
+
+    setVoxel(x, y, z, colorIdx) {
+      const ix = x | 0, iy = y | 0, iz = z | 0;
+      if (ix < 1 || ix >= 255 || iy < 1 || iy >= 255 || iz < 1 || iz >= 255) return;
+      const idx = ix + (iz << 8) + (iy << 16);
+      if (this.stampGrid[idx] === this.currentStamp) {
+        const existing = this.grid[idx];
+        if (this.materialPriority[existing] > this.materialPriority[colorIdx]) return;
+        this.grid[idx] = colorIdx;
+      } else {
+        this.stampGrid[idx] = this.currentStamp;
+        this.grid[idx] = colorIdx;
+        if (this.occupiedCount < this.occupiedList.length) {
+          this.occupiedList[this.occupiedCount++] = idx;
+        }
+      }
+    }
+
+    buildVivariumBase(role) {
+      const cx = 128, cz = 128;
+
+      if (role === 'ARBOREAL') {
+        for (let x = 28; x <= 228; x++) {
+          const t = (x - 28) / 200;
+          const by = 92 + Math.sin(t * Math.PI * 1.5) * 8;
+          const bz = 128 + Math.cos(t * Math.PI * 2.0) * 10;
+          const br = 9.5 + Math.sin(t * Math.PI) * 2.5;
+          const rInt = Math.ceil(br);
+
+          for (let dy = -rInt; dy <= rInt; dy++) {
+            for (let dz = -rInt; dz <= rInt; dz++) {
+              const d2 = dy * dy + dz * dz;
+              if (d2 <= br * br) {
+                const n = this.fastNoise(x, (by + dy) | 0, (bz + dz) | 0);
+                if (dy > br * 0.65 && n > 0.25) {
+                  this.setVoxel(x, by + dy + 1, bz + dz, 6 + Math.min(3, ((n + 1) * 2) | 0));
+                }
+                const woodCol = 1 + Math.min(4, (((dy / br + 1) * 2.2 + (n + 1) * 0.5)) | 0);
+                this.setVoxel(x, by + dy, bz + dz, woodCol);
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      const baseY = 38;
+      const rx = 86, rz = 82;
+      for (let z = cz - rz; z <= cz + rz; z++) {
+        for (let x = cx - rx; x <= cx + rx; x++) {
+          const dx = (x - cx) / rx;
+          const dz = (z - cz) / rz;
+          const d = Math.hypot(dx, dz);
+          if (d > 1.0) continue;
+
+          const dome = Math.cos(d * Math.PI * 0.5) * 11;
+          const n = this.fastNoise(x >> 2, 0, z >> 2) * 3.0;
+          const topY = Math.floor(baseY + dome + n);
+
+          for (let y = baseY - 6; y <= topY; y++) {
+            const fn = this.fastNoise(x, y, z);
+            if (y === topY && (d > 0.62 || fn > 0.42)) {
+              this.setVoxel(x, y, z, 6 + Math.min(3, ((fn + 1) * 2) | 0));
+            } else {
+              this.setVoxel(x, y, z, 1 + Math.min(4, (((y - baseY + 6) / 16) * 5) | 0));
+            }
+          }
+        }
+      }
+    }
+
+    generateSnakeSpine(role) {
+      const pts = [];
+      const steps = 220;
+      const cx = 128, cz = 128;
+
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        let x = cx, y = 55, z = cz;
+        let rx = 8.0, ry = 7.0;
+
+        const girth = Math.pow(Math.sin(Math.pow(t, 0.72) * Math.PI * 0.92), 0.62);
+
+        if (role === 'COBRA') {
+          if (t < 0.56) {
+            const ct = t / 0.56;
+            const ang = ct * Math.PI * 3.8;
+            const rad = 52 - ct * 20;
+            x = cx + Math.cos(ang) * rad;
+            z = cz + Math.sin(ang) * rad - 10;
+            y = 50 + ct * 14;
+            rx = 9.5 * girth;
+            ry = 8.2 * girth;
+          } else {
+            const ut = (t - 0.56) / 0.44;
+            x = cx + Math.sin(ut * Math.PI) * 8;
+            z = cz - 14 + Math.pow(ut, 1.8) * 32;
+            y = 64 + ut * 126;
+
+            const hoodFlare = ut > 0.38 ? Math.sin(((ut - 0.38) / 0.62) * Math.PI) : 0;
+            rx = 8.5 * girth + hoodFlare * 24.0;
+            ry = (7.5 * girth) * (1 - hoodFlare * 0.48);
+          }
+        } else if (role === 'RATTLER') {
+          if (t < 0.10) {
+            const rt = (0.10 - t) / 0.10;
+            x = cx - 12;
+            z = cz - 8;
+            y = 54 + rt * 28;
+            rx = ry = 4.2;
+          } else if (t < 0.68) {
+            const ct = (t - 0.10) / 0.58;
+            const ang = ct * Math.PI * 3.8;
+            const rad = 18 + ct * 36;
+            x = cx + Math.cos(ang) * rad;
+            z = cz + Math.sin(ang) * rad;
+            y = 51 + ct * 12;
+            rx = 11.2 * girth;
+            ry = 9.5 * girth;
+          } else {
+            const st = (t - 0.68) / 0.32;
+            x = cx + Math.sin(st * Math.PI * 2.1) * 30;
+            z = cz - 10 + st * 42;
+            y = 63 + st * 68;
+            rx = 9.8 * girth;
+            ry = 8.5 * girth;
+          }
+        } else if (role === 'ARBOREAL') {
+          const loopAng = t * Math.PI * 5.5;
+          x = cx + (t - 0.5) * 112 + Math.sin(t * Math.PI * 3) * 12;
+          y = 84 + Math.cos(loopAng) * 24 + (t > 0.82 ? (t - 0.82) * 85 : 0);
+          z = 128 + Math.sin(loopAng) * 20;
+          rx = 8.8 * girth;
+          ry = 8.2 * girth;
+        } else if (role === 'VIPER') {
+          const wave = t * Math.PI * 3.2;
+          x = cx + Math.sin(wave) * (54 * (1 - t * 0.3));
+          z = cz - 48 + t * 96;
+          y = 51 + Math.sin(t * Math.PI) * 14 + (t > 0.72 ? (t - 0.72) * 75 : 0);
+          rx = 13.5 * girth;
+          ry = 10.5 * girth;
+        } else if (role === 'PYTHON') {
+          const ang = t * Math.PI * 4.4;
+          const r = 56 * (1 - t * 0.38);
+          x = cx + Math.sin(ang) * r;
+          z = cz + Math.cos(ang * 0.5) * r;
+          y = 51 + t * 32 + (t > 0.78 ? (t - 0.78) * 65 : 0);
+          rx = 12.2 * girth;
+          ry = 10.2 * girth;
+        } else {
+          const wave = t * Math.PI * 3.6;
+          x = cx + Math.cos(wave) * (48 * (1 - t * 0.35));
+          z = cz - 42 + t * 88;
+          y = 50 + (t > 0.52 ? Math.pow((t - 0.52) / 0.48, 1.35) * 112 : t * 18);
+          rx = 8.2 * girth;
+          ry = 7.6 * girth;
+        }
+
+        pts.push({
+          x, y, z,
+          rx: Math.max(2.2, rx),
+          ry: Math.max(2.0, ry),
+          t
+        });
+      }
+      return pts;
+    }
+
+    buildSnakeAlongSpine(pts, role, sp) {
+      const isKeeled = (role === 'VIPER' || role === 'RATTLER');
+      const mIdx = this.morphIdx;
+      const gIdx = this.geneIdx;
+
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        const next = pts[Math.min(pts.length - 1, i + 1)];
+        const prev = pts[Math.max(0, i - 1)];
+
+        let tx = next.x - prev.x;
+        let ty = next.y - prev.y;
+        let tz = next.z - prev.z;
+        const tLen = Math.hypot(tx, ty, tz) || 1;
+        tx /= tLen; ty /= tLen; tz /= tLen;
+
+        let rxVec = -tz, rzVec = tx;
+        const rLen = Math.hypot(rxVec, rzVec) || 1;
+        rxVec /= rLen; rzVec /= rLen;
+
+        const uxVec = -rzVec * ty;
+        const uyVec = rzVec * tx - rxVec * tz;
+        const uzVec = rxVec * ty;
+
+        for (let u = -p.rx - 1; u <= p.rx + 1; u += 0.85) {
+          const nu = u / p.rx;
+          if (Math.abs(nu) > 1.05) continue;
+
+          for (let v = -p.ry - 1; v <= p.ry + 1; v += 0.85) {
+            const nv = v / p.ry;
+            const bellyMod = nv < -0.55 ? 1.25 : 1.0;
+            const d2 = nu * nu + (nv * bellyMod) * (nv * bellyMod);
+            if (d2 > 1.0) continue;
+
+            const angleAround = Math.atan2(nv, nu);
+            const scaleLattice = Math.sin(i * 1.45 + angleAround * 7.0);
+            if (isKeeled && d2 > 0.72 && scaleLattice < -0.25 && nv > -0.2) continue;
+
+            const vx = (p.x + rxVec * u + uxVec * v) | 0;
+            const vy = (p.y + uyVec * v) | 0;
+            const vz = (p.z + rzVec * u + uzVec * v) | 0;
+
+            let pal = 10;
+
+            // 1. Ventral Belly Scutes
+            if (nv < -0.45) {
+              pal = 30;
+            }
+            // 2. Leucistic Morph: 100% Pure Ivory White
+            else if (mIdx === 5) {
+              pal = 10;
+            }
+            // 3. Piebald Morph: Large unpatterned pure-white body saddles interrupting the pattern!
+            else if (mIdx === 2 && ((i > 28 && i < 62) || (i > 95 && i < 138) || (i > 162 && i < 185))) {
+              pal = 30;
+            }
+            // 4. Paradox Chimera Morph: Erratic patches of obsidian, neon orange & pure white!
+            else if (mIdx === 9 && this.fastNoise(vx >> 2, vy >> 2, vz >> 2) > 0.32) {
+              const pCol = 50 + (Math.abs(vx + vy + vz) % 4);
+              this.setVoxel(vx, vy, vz, pCol);
+              continue;
+            }
+            // 5. Cobra Hood Spectacle Mark
+            else if (role === 'COBRA' && p.t > 0.72 && p.t < 0.92 && Math.abs(nu) > 0.22 && Math.abs(nu) < 0.72) {
+              const hoodT = (p.t - 0.82) / 0.08;
+              const spotDist = Math.hypot(Math.abs(nu) - 0.48, hoodT);
+              pal = (spotDist < 0.22) ? 10 : (spotDist < 0.42 ? 20 : 10);
+            }
+            // 6. Secondary Pattern Modifiers (`gIdx` 1..6)
+            else if (gIdx === 1) {
+              // Pinstripe: Continuous thin dorsal stripe down the spine
+              pal = Math.abs(nu) < 0.22 ? 20 : 10;
+            } else if (gIdx === 3) {
+              // Tessera: Dorsal bar + lateral checkerboard
+              pal = (Math.abs(nu) < 0.28 || (((i >> 2) + (nu > 0 ? 1 : 0)) & 1 && Math.abs(nu) > 0.55)) ? 20 : 10;
+            } else if (gIdx === 4) {
+              // Motley: Connected dorsal ocelli / chain links
+              const ring = Math.hypot((i % 12) - 6, nu * 10);
+              pal = (ring > 3.2 && ring < 5.5) ? 20 : 10;
+            } else if (gIdx === 5) {
+              // Granite: Fine speckled peppering across every scale
+              pal = this.fastNoise(vx, vy, vz) > 0.15 ? 20 : 10;
+            } else if (gIdx === 6) {
+              // Aztec: Zig-zag lightning geometric band
+              const zig = Math.sin(i * 0.55 + Math.sin(nu * 4.5) * 2.2);
+              pal = zig > 0.25 ? 20 : 10;
+            }
+            // 7. Species Default Pattern (Bands, Diamonds, or Saddles)
+            else if (this.patternStyle === 'bands') {
+              const bandPhase = (i >> 2) % 4;
+              pal = bandPhase === 0 ? 30 : (bandPhase === 2 ? 20 : 10);
+            } else if (this.patternStyle === 'diamonds') {
+              if (role === 'RATTLER' && p.t < 0.18) {
+                pal = ((i >> 1) & 1) ? 30 : 10;
+              } else {
+                const dia = Math.abs((i % 10) - 5) / 5 + Math.abs(nu) * 1.15;
+                pal = (dia > 0.72 && dia < 1.08) ? 20 : 10;
+              }
+            } else {
+              const saddle = Math.sin(i * 0.42) * Math.cos(nu * 2.2);
+              if (saddle > 0.22) pal = 20;
+            }
+
+            const scaleBump = scaleLattice * 0.18;
+            const shade = Math.max(0, Math.min(5, (((nv + 1) * 0.35 + (1 - d2) * 0.25 + scaleBump + 0.15) * 6) | 0));
+            this.setVoxel(vx, vy, vz, pal + shade);
+          }
+        }
+      }
+
+      // Keratin Rattle on Rattlesnakes
+      if (role === 'RATTLER') {
+        const tail = pts[0];
+        for (let seg = 0; seg < 6; seg++) {
+          const ry = tail.y + seg * 3.6;
+          const rRad = 5.4 * (1 - seg * 0.11);
+          const col = (seg & 1) ? 45 : 46;
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let dz = -6; dz <= 6; dz++) {
+              for (let dx = -6; dx <= 6; dx++) {
+                if ((dx * dx) / (rRad * rRad) + (dy * dy) / 4 + (dz * dz) / (rRad * rRad * 0.6) <= 1.0) {
+                  this.setVoxel(tail.x + dx, ry + dy, tail.z + dz, col);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      this.buildSnakeHead(pts[pts.length - 1], role, sp);
+    }
+
+    buildSnakeHead(neckNode, role, sp) {
+      const hx = neckNode.x;
+      const hy = neckNode.y + (role === 'COBRA' ? 4 : 2);
+      const hz = neckNode.z + 2;
+
+      const isViperHead = (role === 'VIPER' || role === 'RATTLER' || role === 'ARBOREAL');
+      const headW = isViperHead ? 18 : 13;
+      const headH = 9.5;
+      const headL = 24;
+
+      for (let dz = -4; dz <= headL; dz++) {
+        const t = (dz + 4) / (headL + 4);
+        const widthProfile = isViperHead
+          ? Math.sin(Math.pow(t, 0.65) * Math.PI) * (1.28 - t * 0.45)
+          : Math.sin(Math.pow(t, 0.75) * Math.PI) * 1.05;
+
+        const curW = Math.max(2.5, headW * widthProfile);
+        const curH = Math.max(2.5, headH * (1 - t * 0.45));
+        const snoutLift = (sp.includes("Hognose") || sp.includes("Rhinoceros")) && t > 0.75 ? (t - 0.75) * 22 : 0;
+
+        for (let dy = -curH * 0.4; dy <= curH; dy++) {
+          for (let dx = -curW; dx <= curW; dx++) {
+            const d2 = (dx / curW) * (dx / curW) + (dy / curH) * (dy / curH);
+            if (d2 > 1.0) continue;
+            const n = this.fastNoise((hx + dx) | 0, (hy + dy) | 0, (hz + dz) | 0);
+            const shade = Math.max(0, Math.min(5, (((dy / curH + 0.5) * 0.55 + (n + 1) * 0.2) * 6) | 0));
+            this.setVoxel(hx + dx, hy + dy + snoutLift, hz + dz, 10 + shade);
+          }
+        }
+      }
+
+      const hasOpenStrikeMouth = (role === 'COBRA' || role === 'RATTLER' || role === 'VIPER');
+      if (hasOpenStrikeMouth) {
+        for (let dz = 0; dz <= headL - 3; dz++) {
+          const t = dz / (headL - 3);
+          const jw = headW * 0.68 * (1 - t * 0.55);
+          const jy = hy - 3 - t * 9;
+          for (let dx = -jw; dx <= jw; dx++) {
+            this.setVoxel(hx + dx, jy, hz + dz, 32);
+            this.setVoxel(hx + dx, jy + 1, hz + dz, 42);
+          }
+        }
+        for (const side of [-1, 1]) {
+          for (let f = 0; f < 8; f++) {
+            this.setVoxel(hx + side * 6, hy - f, hz + headL - 5 - f * 0.3, 41);
+            if (f < 4) this.setVoxel(hx + side * 6, hy - f, hz + headL - 4 - f * 0.3, 41);
+          }
+        }
+      }
+
+      // Morph-specific Eye Color (Ruby Red for Albino, Ice-Blue for Leucistic, Obsidian for Melanistic, Emerald for Boomslang)
+      const eyeZ = hz + Math.floor(headL * 0.48);
+      const eyeY = hy + 4;
+      const eyeXOff = Math.floor(headW * 0.72);
+      let eyeColor = sp.includes("Boomslang") ? 43 : (isViperHead ? 44 : 42);
+      if (this.morphIdx === 1 || this.morphIdx === 8) eyeColor = 42; // Albino / Lavender Ruby Eye
+      else if (this.morphIdx === 5) eyeColor = 47; // Blue-Eyed Leucistic Ice-Blue Eye
+      else if (this.morphIdx === 4) eyeColor = 40; // Melanistic Jet-Black Eye
+
+      for (const side of [-1, 1]) {
+        const ex = hx + side * eyeXOff;
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dz = -2; dz <= 2; dz++) {
+            this.setVoxel(ex, eyeY + dy, eyeZ + dz, dz === 0 ? 40 : eyeColor);
+          }
+        }
+        this.setVoxel(ex + side, eyeY + 1, eyeZ + 1, 41);
+
+        if (sp.includes("Eyelash") || sp.includes("Bush") || sp.includes("Gaboon")) {
+          for (let h = 1; h <= 5; h++) {
+            this.setVoxel(ex + side * (h * 0.6), eyeY + 2 + h, eyeZ, 24);
+          }
+        }
+      }
+
+      const tongueStartZ = hz + headL + 1;
+      const tongueStartY = hy - (hasOpenStrikeMouth ? 4 : 0);
+      for (let t = 0; t <= 16; t++) {
+        const tz = tongueStartZ + t;
+        const ty = tongueStartY - Math.sin(t * 0.25) * 2;
+        if (t < 9) {
+          this.setVoxel(hx, ty, tz, 42);
+          this.setVoxel(hx + 1, ty, tz, 42);
+        } else {
+          const forkSpread = (t - 8) * 0.85;
+          this.setVoxel(hx - forkSpread, ty + (t - 9) * 0.4, tz, 40);
+          this.setVoxel(hx + forkSpread, ty + (t - 9) * 0.4, tz, 40);
+        }
+      }
+    }
+
+    generate(seedInt, role, tierIdx, sp, morphIdx = 0, geneIdx = 0) {
+      this.initRNG(seedInt);
+
+      this.currentStamp++;
+      if (this.currentStamp >= 65530) {
+        this.stampGrid.fill(0);
+        this.currentStamp = 1;
+      }
+      this.occupiedCount = 0;
+
+      this.setupSnakePalettes(sp, role, tierIdx, morphIdx, geneIdx);
+      this.buildVivariumBase(role);
+
+      const spine = this.generateSnakeSpine(role);
+      this.buildSnakeAlongSpine(spine, role, sp);
+
+      this.bakeSurfaceVoxels();
+      this.render();
+      return this.canvas.toDataURL('image/png');
+    }
+
+    bakeSurfaceVoxels() {
+      const grid = this.grid;
+      const stampGrid = this.stampGrid;
+      const stamp = this.currentStamp;
+      const count = this.occupiedCount;
+      const list = this.occupiedList;
+      const sunX = -0.45, sunY = 0.78, sunZ = 0.42;
+
+      let sIdx = 0;
+      const maxSurf = this.surfX.length;
+
+      for (let i = 0; i < count; i++) {
+        const idx = list[i];
+        const mat = grid[idx];
+        const x = idx & 255;
+        const z = (idx >> 8) & 255;
+        const y = (idx >> 16) & 255;
+
+        const expTop   = stampGrid[idx + 65536] !== stamp;
+        const expBot   = stampGrid[idx - 65536] !== stamp;
+        const expLeft  = stampGrid[idx - 1] !== stamp;
+        const expRight = stampGrid[idx + 1] !== stamp;
+        const expFront = stampGrid[idx + 256] !== stamp;
+        const expBack  = stampGrid[idx - 256] !== stamp;
+
+        if (!expTop && !expBot && !expLeft && !expRight && !expFront && !expBack) continue;
+        if (sIdx >= maxSurf) break;
+
+        let occ = 0;
+        if (!expTop) occ += 2;
+        if (!expBot) occ += 2;
+        if (!expLeft) occ += 2;
+        if (!expRight) occ += 2;
+        if (!expFront) occ += 2;
+        if (!expBack) occ += 2;
+        const ao = 1.10 - (occ / 12) * 0.48;
+
+        let inShadow = false;
+        let srx = x + sunX * 2.5, sry = y + sunY * 2.5, srz = z + sunZ * 2.5;
+        for (let step = 0; step < 16; step++) {
+          const ix = srx | 0, iy = sry | 0, iz = srz | 0;
+          if (ix <= 0 || ix >= 255 || iy >= 255 || iz <= 0 || iz >= 255) break;
+          if (stampGrid[ix + (iz << 8) + (iy << 16)] === stamp) {
+            inShadow = true;
+            break;
+          }
+          srx += sunX * 2.6; sry += sunY * 2.6; srz += sunZ * 2.6;
+        }
+
+        let dirLight = 0.88;
+        if (expTop) dirLight += 0.25;
+        if (expLeft) dirLight += 0.08;
+        if (expRight) dirLight -= 0.10;
+
+        const isSpecular = (mat >= 41 && mat <= 47);
+        const totalLight = isSpecular
+          ? 1.35
+          : Math.max(0.26, Math.min(1.34, ao * dirLight * (inShadow ? 0.62 : 1.08)));
+
+        const baseRGB = this.paletteRGB[mat];
+        const r = (baseRGB >> 16) & 255;
+        const g = (baseRGB >> 8) & 255;
+        const b = baseRGB & 255;
+
+        const mTop = totalLight * 1.08;
+        const mLeft = totalLight * 0.92;
+        const mRight = totalLight * 0.76;
+
+        this.surfX[sIdx] = x - 128;
+        this.surfY[sIdx] = y - 102;
+        this.surfZ[sIdx] = z - 128;
+        this.surfColTop[sIdx]   = (255 << 24) | (Math.min(255, (b * mTop) | 0) << 16)   | (Math.min(255, (g * mTop) | 0) << 8)   | Math.min(255, (r * mTop) | 0);
+        this.surfColLeft[sIdx]  = (255 << 24) | (Math.min(255, (b * mLeft) | 0) << 16)  | (Math.min(255, (g * mLeft) | 0) << 8)  | Math.min(255, (r * mLeft) | 0);
+        this.surfColRight[sIdx] = (255 << 24) | (Math.min(255, (b * mRight) | 0) << 16) | (Math.min(255, (g * mRight) | 0) << 8) | Math.min(255, (r * mRight) | 0);
+        sIdx++;
+      }
+      this.surfCount = sIdx;
+    }
+
+    render(targetCanvas = null) {
+      const W = 512, H = 512;
+      const zBuf = this.zBuf;
+      const pixels = this.pixels;
+
+      zBuf.fill(1e9);
+
+      for (let py = 0; py < H; py++) {
+        const rowOff = py * W;
+        const dy = py - 245;
+        for (let px = 0; px < W; px++) {
+          const dx = px - 256;
+          const d = Math.min(1, Math.hypot(dx, dy) / 340);
+          const v = (24 * (1 - d) + 6 * d) | 0;
+          pixels[rowOff + px] = (255 << 24) | (v << 16) | ((v + 4) << 8) | v;
+        }
+      }
+
+      const cosY = Math.cos(this.yaw), sinY = Math.sin(this.yaw);
+      const cosP = Math.cos(this.pitch), sinP = Math.sin(this.pitch);
+      const scale = this.scale;
+
+      const count = this.surfCount;
+      const sxArr = this.surfX, syArr = this.surfY, szArr = this.surfZ;
+      const cTop = this.surfColTop, cLeft = this.surfColLeft, cRight = this.surfColRight;
+
+      for (let i = 0; i < count; i++) {
+        const vx = sxArr[i], vy = syArr[i], vz = szArr[i];
+
+        const rx = vx * cosY - vz * sinY;
+        const rz1 = vx * sinY + vz * cosY;
+        const ry = vy * cosP - rz1 * sinP;
+        const depth = vy * sinP + rz1 * cosP;
+
+        const sx = (256 + rx * scale) | 0;
+        const sy = (274 - ry * scale) | 0;
+        if (sx < 2 || sx >= 510 || sy < 2 || sy >= 510) continue;
+
+        const zVal = -depth;
+        const topC = cTop[i], leftC = cLeft[i], rightC = cRight[i];
+
+        for (let dy = -1; dy <= 1; dy++) {
+          const rowIdx = (sy + dy) * W;
+          for (let dx = -1; dx <= 1; dx++) {
+            const pIdx = rowIdx + sx + dx;
+            if (zVal < zBuf[pIdx]) {
+              zBuf[pIdx] = zVal;
+              pixels[pIdx] = dy < 0 ? topC : (dx <= 0 ? leftC : rightC);
+            }
+          }
+        }
+      }
+
+      const ctx = targetCanvas ? targetCanvas.getContext('2d') : this.ctx;
+      ctx.putImageData(this.imgData, 0, 0);
+    }
+  }
+
+  const _sharedSnakeEngine = new VoxelSnakeEngine();
+  const _snakeDataURLCache = new Map();
+
+  function generateBonsaiImage(seedInt, role, tierIdx, sp, morphIdx = 0, geneIdx = 0) {
+    const key = `${seedInt}_${role}_${tierIdx}_${sp}_${morphIdx}_${geneIdx}`;
+    let cached = _snakeDataURLCache.get(key);
+    if (cached) return cached;
+
+    _sharedSnakeEngine.yaw = 0.42;
+    _sharedSnakeEngine.pitch = 0.28;
+    const dataUrl = _sharedSnakeEngine.generate(seedInt, role, tierIdx, sp, morphIdx, geneIdx);
+    if (_snakeDataURLCache.size > 160) {
+      const oldest = _snakeDataURLCache.keys().next().value;
+      _snakeDataURLCache.delete(oldest);
+    }
+    _snakeDataURLCache.set(key, dataUrl);
+    return dataUrl;
+  }
+
+  function ensureTreeImage(p) {
+    if (!p.imgData) {
+      const sp = TREE_SPECIES[p.mIdx] || "King Cobra";
+      p.imgData = generateBonsaiImage(
+        p.seedInt,
+        p.role,
+        p.tierIndex ?? p.tierIdx ?? 0,
+        sp,
+        p.pIdx ?? 0,
+        p.bIdx ?? 0
+      );
+    }
+    return p.imgData;
+  }
+
+  /* ================= 60 FPS 3D SNAKE INSPECTOR MODAL ================= */
+  const inspectCanvas = $('inspect-canvas');
+  let inspectDragging = false, inspLastX = 0, inspLastY = 0;
+
+  function openInspectModal(seedInt, role, tierIdx, mIdx, pIdx, bIdx, name) {
+    const sp = TREE_SPECIES[mIdx] || "King Cobra";
+    const morphName = TREE_PREFIXES[pIdx ?? 0] || "Wild-Type";
+    const geneName = TREE_ORIGINS[bIdx ?? 0] || "Locality";
+    $('modal-title').innerText = name;
+    $('modal-sub').innerText = `Morph: ${morphName} ${geneName} // ${role}`;
+    $('voxel-modal').classList.add('open');
+
+    _sharedSnakeEngine.yaw = 0.42;
+    _sharedSnakeEngine.pitch = 0.28;
+    _sharedSnakeEngine.generate(seedInt, role, tierIdx, sp, pIdx ?? 0, bIdx ?? 0);
+    _sharedSnakeEngine.render(inspectCanvas);
+  }
+
+  function closeInspectModal() {
+    $('voxel-modal').classList.remove('open');
+  }
+
+  inspectCanvas.addEventListener('pointerdown', (e) => {
+    inspectDragging = true; inspLastX = e.clientX; inspLastY = e.clientY;
+    inspectCanvas.setPointerCapture(e.pointerId);
+  });
+  inspectCanvas.addEventListener('pointermove', (e) => {
+    if (!inspectDragging) return;
+    _sharedSnakeEngine.yaw = ((_sharedSnakeEngine.yaw + (e.clientX - inspLastX) * 0.012 + Math.PI) % (Math.PI * 2)) - Math.PI;
+    _sharedSnakeEngine.pitch = Math.max(-0.15, Math.min(0.80, _sharedSnakeEngine.pitch + (e.clientY - inspLastY) * 0.008));
+    inspLastX = e.clientX; inspLastY = e.clientY;
+    _sharedSnakeEngine.render(inspectCanvas);
+  });
+  inspectCanvas.addEventListener('pointerup', () => { inspectDragging = false; });
+
+  /* ================= STATE ================= */
+  let State = {
+    funds: 50000000, 
+    fuelReserve: 250000, // Feeders
+    fuelSpotPrice: 2.85,
+    buyMode: 1, 
+    sortHangarMode: 'val',
+    filterHangarRole: 'ALL',
+    filterHangarTier: 'ALL',
+    sortPilotsMode: 'val',
+    filterPilotTier: 'ALL',
+    filterRouteCat: 'ALL',
+    fleet: [], pilots: [], routes: [], auctions: [], marketCars: [],
+    gallery: [], 
+    marketTimer: 10.0,
+    upgrades: { mkt: 0, eng: 0 },
+    automation: { autoDispatch: false, autoMRO: false, autoRefuel: false },
+    claimedMilestones: [],
+    sideMissions: [],
+    statAuctionsSold: 0,
+    statPlanesScrapped: 0
+  };
+  let globalInterval = null;
+  let needsFleetRender = false;
+
+  /* ================= UTILITY & BASE36 ================= */
+  function fmt(n) {
+    if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+    return Math.floor(n).toLocaleString();
+  }
+  function toast(msg) {
+    const r = $('toast-rack'); const e = document.createElement('div');
+    e.className = 'toast'; e.innerHTML = msg; r.appendChild(e);
+    setTimeout(() => e.remove(), 2800);
+  }
+  function updateHUD() {
+    if($('hud-funds')) $('hud-funds').innerText = `$${fmt(State.funds)}`;
+    if($('hud-fleet-count')) $('hud-fleet-count').innerText = State.fleet.length;
+    if($('hud-pilot-count')) $('hud-pilot-count').innerText = State.pilots.length;
+    if($('hud-fuel')) $('hud-fuel').innerText = fmt(State.fuelReserve);
+  }
+  
+  function saveGame() { 
+    let s = JSON.parse(JSON.stringify(State));
+    s.fleet.forEach(p => delete p.imgData);
+    s.marketCars.forEach(p => delete p.imgData);
+    s.gallery.forEach(g => delete g.imgData);
+    s.auctions.forEach(a => { if(a.item.imgData) delete a.item.imgData; });
+    localStorage.setItem('serpentSyndicateV2', JSON.stringify(s)); 
+    toast("Serpentarium Saved."); 
+  }
+  
+  function loadGame() {
+    let s = localStorage.getItem('serpentSyndicateV2') || localStorage.getItem('serpentSyndicateV1');
+    if (s) {
+      State = JSON.parse(s);
+      if(!State.gallery) State.gallery = [];
+      if(!State.routes || State.routes.length < 400) State.routes = generateRoutes();
+      State.fleet.forEach(p => { p.status = 'READY'; p.flightEnd = 0; p.flightStart = 0; });
+      updateHUD(); setTab('market');
+      toast("Serpentarium Restored.");
+    } else {
+      toast("No saved facility found.");
+    }
+  }
+
+  function setBuyMode(val) {
+      State.buyMode = val;
+      ['buy-1','buy-0.25','buy-0.5','buy-1.0'].forEach(id => { if($(id)) $(id).classList.remove('active'); });
+      let sel = val===1?'buy-1':val===0.25?'buy-0.25':val===0.5?'buy-0.5':'buy-1.0';
+      if($(sel)) $(sel).classList.add('active');
+  }
+
+  /* BASE36 FOR HANDLERS */
+  function exportCourier(uid) {
+    let p = State.pilots.find(x => x.uid===uid); if(!p) return;
+    let codeInt = p.fIdx * 160 + p.lIdx * 8 + p.cIdx;
+    prompt("Copy Handler Trade Code:", "HD-" + codeInt.toString(36).toUpperCase());
+  }
+  function importCourier() {
+    let str = prompt("Enter Handler Trade Code (HD-XXX):"); if(!str) return;
+    str = str.replace('HD-', '').trim();
+    let codeInt = parseInt(str, 36); if(isNaN(codeInt) || codeInt < 0) { toast("Invalid code."); return; }
+    let cIdx = codeInt % 8; codeInt = Math.floor(codeInt / 8);
+    let lIdx = codeInt % 20; codeInt = Math.floor(codeInt / 20);
+    let fIdx = codeInt % 20;
+    let tIdx = Math.floor(Math.random() * 10);
+    let bIdx = Math.floor(Math.random() * 4);
+    State.pilots.push(hireCourier(fIdx, lIdx, cIdx, tIdx, bIdx)); 
+    updateHUD(); renderPilots(); toast("Handler hired via Trade Code!");
+  }
+
+  /* BASE36 FOR SNAKES */
+  function exportStrain(uid) {
+    let p = State.fleet.find(x => x.uid===uid); if(!p) return;
+    let codeInt = p.pIdx * 960 + p.bIdx * 120 + p.mIdx * 6 + p.rIdx;
+    prompt("Copy Snake Trade Code:", "SN-" + codeInt.toString(36).toUpperCase());
+  }
+  function importStrain() {
+    let str = prompt("Enter Snake Trade Code (SN-XXX):"); if(!str) return;
+    str = str.replace('SN-', '').trim();
+    let codeInt = parseInt(str, 36); if(isNaN(codeInt) || codeInt < 0) { toast("Invalid code."); return; }
+    let rIdx = codeInt % 6; codeInt = Math.floor(codeInt / 6);
+    let mIdx = codeInt % 20; codeInt = Math.floor(codeInt / 20);
+    let bIdx = codeInt % 8; codeInt = Math.floor(codeInt / 8);
+    let pIdx = codeInt % 10;
+    let tIdx = Math.floor(Math.random() * 10);
+    
+    let tD = TIERS[tIdx];
+    let val = Math.floor(tD.baseVal * 1.0); 
+    let cost = Math.max(50000, Math.floor(val * 0.8)); 
+    let cap = (3.5 + tIdx * 1.3).toFixed(1);
+    let rnge = Math.floor(1000 + (tIdx * 900));
+    let burn = Math.floor(20 + (tIdx * 15));
+    let seedInt = (pIdx * 960 + bIdx * 120 + mIdx * 6 + rIdx) * 31 + tIdx;
+    let sp = TREE_SPECIES[mIdx];
+    let role = TREE_STYLES[rIdx % TREE_STYLES.length];
+
+    let importedSnake = {
+      uid: 'S' + Math.floor(100+Math.random()*899) + 'SN',
+      pIdx, bIdx, mIdx, rIdx, tierIndex: tIdx,
+      seedInt: seedInt,
+      imgData: generateBonsaiImage(seedInt, role, tIdx, sp, pIdx, bIdx),
+      name: `${TREE_PREFIXES[pIdx]} ${TREE_ORIGINS[bIdx]} ${sp}`,
+      role: role, tierName: tD.name, tierColor: tD.color,
+      value: val, cost: cost, capacity: cap, range: rnge, fuelBurn: burn,
+      condition: 100, status: 'READY', assignedRoute: null, assignedPilot: null
+    };
+    
+    State.fleet.push(importedSnake);
+    updateHUD(); renderFleet(); toast("Snake Morph acquired via Trade Code!");
+  }
+
+  function generateRoutes() {
+    let rts = [];
+    let roles = TREE_STYLES;
+    let used = new Set();
+    let idCounter = 0;
+
+    roles.forEach(role => {
+      let pool = ZONE_CAT[role] || ZONE_CAT["PYTHON"];
+      let count = role === "COBRA" || role === "PYTHON" ? 80 : 60; // 400 total
+      for(let i=0; i<count; i++) {
+        let a1, a2, pair;
+        let attempts = 0;
+        do {
+          a1 = pool[Math.floor(Math.random() * pool.length)];
+          a2 = pool[Math.floor(Math.random() * pool.length)];
+          pair = `${a1}-${a2}-${role}`;
+          attempts++;
+        } while((a1 === a2 || used.has(pair)) && attempts < 50);
+        
+        used.add(pair);
+        let dist = role === 'COBRA' ? Math.floor(1200 + Math.random() * 7500) : Math.floor(350 + Math.random() * 8500);
+        
+        rts.push({
+          id: "rt_" + (idCounter++),
+          name: `${a1} ↔ ${a2}`, role: role, dist: dist,
+          cost: Math.ceil((100000 + (Math.pow(dist, 1.38) * 32)) / 10000) * 10000,
+          unlocked: idCounter === 1,
+          minTier: dist > 6500 ? "Global" : dist > 4000 ? "National" : dist > 1500 ? "Regional" : "Local"
+        });
+      }
+    });
+
+    rts.sort((a,b) => a.dist - b.dist);
+    rts[0].unlocked = true;
+    return rts;
+  }
+
+  function getFamilyForSpecies(mIdx) {
+    if (mIdx <= 2) return 0; // COBRA (King Cobra, Monocled Cobra, Black Mamba)
+    if (mIdx <= 5) return 1; // RATTLER (Western Diamondback, Timber Rattlesnake, Eastern Diamondback)
+    if (mIdx <= 8) return 2; // VIPER (Gaboon Viper, Variable Bush Viper, Rhinoceros Viper)
+    if (mIdx <= 12) return 3; // ARBOREAL (Green Tree Python, Emerald Tree Boa, Eyelash Viper, Blue Insularis)
+    if (mIdx <= 15) return 4; // PYTHON (Ball Python, Reticulated Python, Brazilian Rainbow Boa)
+    return 5; // COLUBRID (Boomslang, Western Hognose, California Kingsnake, False Water Cobra)
+  }
+
+  function harvestStrain(tIdx, skipImage = false) {
+    let pIdx = Math.floor(Math.random() * TREE_PREFIXES.length);
+    let bIdx = Math.floor(Math.random() * TREE_ORIGINS.length);
+    let mIdx = Math.floor(Math.random() * TREE_SPECIES.length);
+    let rIdx = getFamilyForSpecies(mIdx);
+    let tD = TIERS[tIdx];
+    let sp = TREE_SPECIES[mIdx];
+    let role = TREE_STYLES[rIdx];
+
+    let fluct = 1.0 + (Math.random() * 0.4 - 0.2); 
+    let val = Math.floor(tD.baseVal * fluct);
+    let seedInt = Math.floor(Math.random() * 9999999);
+
+    return {
+      uid: 'S' + Math.floor(100+Math.random()*899) + 'SN',
+      pIdx, bIdx, mIdx, rIdx, tierIndex: tIdx, seedInt: seedInt,
+      imgData: skipImage ? null : generateBonsaiImage(seedInt, role, tIdx, sp, pIdx, bIdx),
+      name: `${TREE_PREFIXES[pIdx]} ${TREE_ORIGINS[bIdx]} ${sp}`,
+      role: role, tierName: tD.name, tierColor: tD.color,
+      value: val, cost: Math.max(50000, Math.floor(val * 0.8)), 
+      capacity: (3.2 + (tIdx * 1.4) * fluct).toFixed(1), // Length in Feet
+      range: Math.floor(1000 + (tIdx * 900) * fluct), 
+      fuelBurn: Math.floor(20 + (tIdx * 15)), // Feeders
+      condition: 100, status: 'READY', assignedRoute: null, assignedPilot: null
+    };
+  }
+
+  function hireCourier(fIdx, lIdx, cIdx, tIdx, bIdx) {
+    let rawPow = [6,25,100,300,1000,2500,6000,15000,35000,66666][tIdx];
+    return {
+      uid: Date.now()+Math.random().toString(36).substring(2,8), fIdx, lIdx, cIdx, tIdx, bIdx,
+      name: `${P_FIRST[fIdx]} ${P_CALL[cIdx]} ${P_LAST[lIdx]}`,
+      tierIndex: tIdx, tierName: TIERS[tIdx].name, tierColor: TIERS[tIdx].color,
+      bType: B_TYPES[bIdx], bonus: rawPow, value: Math.floor(TIERS[tIdx].baseVal / 10),
+      locked: false, assignedTo: null
+    };
+  }
+
+  /* ================= FIELD HERPING MARKET (NO MARKET IMAGES!) ================= */
+  function refreshMarket() {
+    State.marketCars = [];
+    for(let i=0; i<5; i++) {
+      let r = Math.random()*100; let tI = r>99.9?9 : r>99?8 : r>95?7 : r>85?6 : r>70?5 : r>50?4 : r>30?3 : r>15?2 : r>5?1 : 0;
+      State.marketCars.push(harvestStrain(tI, true));
+    }
+    renderMarket();
+  }
+
+  function renderMarket() {
+    const grid = $('market-grid'); if(!grid) return; grid.innerHTML = '';
+    State.marketCars.forEach((c, idx) => {
+      let rCol = c.role === 'COBRA' ? '#a855f7' : c.role === 'RATTLER' ? '#f59e0b' : c.role === 'VIPER' ? '#ef4444' : c.role === 'ARBOREAL' ? '#22c55e' : c.role === 'PYTHON' ? '#fbbf24' : '#06b6d4';
+      const morphTag = `${TREE_PREFIXES[c.pIdx ?? 0]} + ${TREE_ORIGINS[c.bIdx ?? 0]}`;
+      grid.innerHTML += `
+        <div class="strain-card" style="border-color:${c.tierColor};">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:${c.tierColor}; font-weight:bold; font-size:10px;">[${c.tierName}]</span>
+            <span class="badge" style="color:${rCol}; border-color:${rCol};">${c.role}</span>
+          </div>
+          <div class="bud-art-container" style="padding:8px 10px;">
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:900; color:#fff;">${c.name}</div>
+              <div style="font-size:9px; color:var(--status-green); margin-top:2px;">Genetics: ${morphTag} // #${c.seedInt}</div>
+            </div>
+          </div>
+          <div class="spec-grid">
+            <div><span>LEN:</span> ${c.capacity} FT</div>
+            <div><span>DIST:</span> ${c.range.toLocaleString()} MI</div>
+            <div><span>FEED:</span> ${c.fuelBurn} u/sh</div>
+            <div><span>VAL:</span> $${fmt(c.value)}</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <div>
+              <div style="font-size:9px; color:var(--silver-dim);">Est Val: $${fmt(c.value)}</div>
+              <div style="font-size:12px; color:var(--status-green); font-weight:bold; font-family:monospace;">Ask: $${fmt(c.cost)}</div>
+            </div>
+            <button class="btn btn-green" onclick="buyMarketStrain(${idx})">BAG</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function buyMarketStrain(idx) {
+    let c = State.marketCars[idx]; if(!c) return;
+    if(State.funds < c.cost) { toast("Insufficient cash."); return; }
+    State.funds -= c.cost;
+    ensureTreeImage(c);
+    State.fleet.push(c);
+    State.marketCars.splice(idx, 1);
+    toast(`Racked: ${c.name}`); updateHUD(); renderMarket();
+  }
+
+  function buySeeds(bIdx, count) {
+    let costs = [10000, 100000, 1000000, 5000000];
+    let c = State.buyMode === 1 ? count : Math.max(1, Math.floor(Math.floor(State.funds/costs[bIdx]) * State.buyMode));
+    let cost = costs[bIdx] * c;
+    if(State.funds < cost) { toast("Insufficient cash."); return; }
+    State.funds -= cost;
+    let tArr = bIdx===0?[0,1,2,3]:bIdx===1?[2,3,4,5]:bIdx===2?[4,5,6,7]:[6,7,8,9];
+    for(let i=0; i<c; i++) {
+      let r = Math.random()*100; let tI = r>95?tArr[3]:r>80?tArr[2]:r>50?tArr[1]:tArr[0];
+      State.fleet.push(harvestStrain(tI, c > 10));
+    }
+    updateHUD(); toast(`Pipped ${c}x Hatchlings.`);
+  }
+
+  function buyResumes(bIdx, count) {
+    let costs = [5000, 50000, 250000, 1000000];
+    let c = State.buyMode === 1 ? count : Math.max(1, Math.floor(Math.floor(State.funds/costs[bIdx]) * State.buyMode));
+    let cost = costs[bIdx] * c;
+    if(State.funds < cost) { toast("Insufficient cash."); return; }
+    State.funds -= cost;
+    let tArr = bIdx===0?[0,1,2,3]:bIdx===1?[2,3,4,5]:bIdx===2?[4,5,6,7]:[6,7,8,9];
+    for(let i=0; i<c; i++) {
+      let r = Math.random()*100; let tI = r>95?tArr[3]:r>80?tArr[2]:r>50?tArr[1]:tArr[0];
+      State.pilots.push(hireCourier(Math.floor(Math.random()*20), Math.floor(Math.random()*20), Math.floor(Math.random()*8), tI, Math.floor(Math.random()*4)));
+    }
+    updateHUD(); toast(`Hired ${c}x Handlers.`);
+  }
+
+  function buyFuelFixed(amount) {
+    let unit = State.fuelSpotPrice;
+    let gal = amount === 'MAX' ? Math.floor(State.funds / unit) : amount;
+    if(gal <= 0) { toast("Insufficient cash."); return; }
+    let cost = gal * unit;
+    if(State.funds < cost) { toast("Insufficient cash."); return; }
+    State.funds -= cost; State.fuelReserve += gal;
+    toast(`Stocked ${fmt(gal)} Feeders.`); updateHUD();
+  }
+
+  /* ================= SNAKE RACKS (INVENTORY) ================= */
+  function sortHangar(mode) { State.sortHangarMode = mode; renderFleet(); }
+  function filterHangarRole(val) { State.filterHangarRole = val; renderFleet(); }
+  function filterHangarTier(val) { State.filterHangarTier = val; renderFleet(); }
+  
+  function assignRoute(pUid, rId) { const p = State.fleet.find(x=>x.uid===pUid); if(p) p.assignedRoute = rId; }
+  function assignPilot(pUid, piUid) {
+    const p = State.fleet.find(x=>x.uid===pUid); if(!p) return;
+    if(p.assignedPilot) { let o = State.pilots.find(x=>x.uid===p.assignedPilot); if(o) o.assignedTo = null; }
+    if(piUid==="") p.assignedPilot = null; 
+    else { p.assignedPilot=piUid; let n=State.pilots.find(x=>x.uid===piUid); if(n) n.assignedTo=pUid; }
+    renderFleet();
+  }
+
+  function autoAssignPilots() {
+    let unassigned = State.fleet.filter(p => !p.assignedPilot && p.status === 'READY');
+    let freeCouriers = State.pilots.filter(p => !p.assignedTo && !p.locked).sort((a,b) => b.bonus - a.bonus);
+    if(unassigned.length === 0 || freeCouriers.length === 0) {
+      toast("No idle snakes or available handlers."); return;
+    }
+    let paired = 0;
+    unassigned.forEach(p => {
+      if(freeCouriers.length > 0) {
+        let pilot = freeCouriers.shift();
+        p.assignedPilot = pilot.uid;
+        pilot.assignedTo = p.uid;
+        paired++;
+      }
+    });
+    toast(`Assigned handlers to ${paired} enclosures.`); renderFleet(); renderPilots();
+  }
+
+  function autoAssignRoutes() {
+    let unrouted = State.fleet.filter(p => !p.assignedRoute && p.status === 'READY');
+    let uRts = State.routes.filter(r => r.unlocked);
+    if(unrouted.length === 0 || uRts.length === 0) {
+      toast("No idle snakes or unlocked expos."); return;
+    }
+    let routedCnt = 0;
+    unrouted.forEach(p => {
+      let valid = uRts.filter(r => (r.role === p.role || r.role === 'COBRA') && r.dist <= p.range);
+      if(valid.length > 0) {
+        valid.sort((a,b) => b.dist - a.dist);
+        p.assignedRoute = valid[0].id;
+        routedCnt++;
+      }
+    });
+    toast(`Auto-Booked ${routedCnt} snakes to furthest expos.`);
+    renderFleet();
+  }
+
+  function renderFleet() {
+    const list = $('fleet-list'); if(!list) return; list.innerHTML = '';
+    let filtered = [...State.fleet];
+    if(State.filterHangarRole !== 'ALL') filtered = filtered.filter(p => p.role === State.filterHangarRole);
+    if(State.filterHangarTier !== 'ALL') filtered = filtered.filter(p => p.tierIndex === parseInt(State.filterHangarTier));
+    
+    if(filtered.length===0) { list.innerHTML=`<div style="text-align:center; padding:20px; color:var(--silver-dim); font-size:11px;">No snakes match current filters.</div>`; return; }
+
+    if(State.sortHangarMode==='val') filtered.sort((a,b)=>b.value-a.value);
+    if(State.sortHangarMode==='tier') filtered.sort((a,b)=>b.tierIndex-a.tierIndex);
+    if(State.sortHangarMode==='range') filtered.sort((a,b)=>b.range-a.range);
+
+    const uRts = State.routes.filter(r => r.unlocked);
+    
+    let routeOptionsCache = {};
+    TREE_STYLES.forEach(role => {
+        let opts = `<option value="">-- Assign Expo (${role}) --</option>`;
+        uRts.filter(r => r.role === role || r.role === 'COBRA').forEach(r => {
+            opts += `<option value="${r.id}">${r.name} [${r.role}] (${r.dist} MI)</option>`;
+        });
+        routeOptionsCache[role] = opts;
+    });
+
+    let pilotOpts = `<option value="">-- Assign Handler --</option>`;
+    State.pilots.forEach(pl => { 
+        if(!pl.assignedTo) pilotOpts += `<option value="${pl.uid}">${pl.name} [${pl.bType}: +${fmt(pl.bonus)}%]</option>`; 
+    });
+
+    filtered.forEach(p => {
+      ensureTreeImage(p);
+      let rCol = p.role === 'COBRA' ? '#a855f7' : p.role === 'RATTLER' ? '#f59e0b' : p.role === 'VIPER' ? '#ef4444' : p.role === 'ARBOREAL' ? '#22c55e' : p.role === 'PYTHON' ? '#fbbf24' : '#06b6d4';
+      
+      let pOpts = routeOptionsCache[p.role];
+      if(p.assignedRoute) pOpts = pOpts.replace(`value="${p.assignedRoute}"`, `value="${p.assignedRoute}" selected`);
+      let rtSel = `<select ${p.status==='IN_FLIGHT'?'disabled':''} onchange="assignRoute('${p.uid}', this.value)">${pOpts}</select>`;
+
+      let pPilotOpts = pilotOpts;
+      if(p.assignedPilot) {
+          let pl = State.pilots.find(x=>x.uid === p.assignedPilot);
+          if(pl) pPilotOpts += `<option value="${pl.uid}" selected>${pl.name}</option>`;
+      }
+      let piSel = `<select ${p.status==='IN_FLIGHT'?'disabled':''} onchange="assignPilot('${p.uid}', this.value)">${pPilotOpts}</select>`;
+      const safeName = p.name.replace(/'/g, "\\'");
+      const morphTag = `${TREE_PREFIXES[p.pIdx ?? 0]} • ${TREE_ORIGINS[p.bIdx ?? 0]}`;
+
+      list.innerHTML += `
+        <div class="strain-card ${p.status==='IN_FLIGHT'?'in-flight':p.condition<50?'damaged':''}" style="border-color:${p.tierColor};">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="color:${p.tierColor}; font-weight:bold; font-size:10px;">[${p.tierName}]</span>
+              <span style="font-size:12px; font-weight:900; color:#fff; margin-left:3px;">${p.name}</span>
+            </div>
+            <span class="badge" style="color:${rCol}; border-color:${rCol};">${p.role}</span>
+          </div>
+          
+          <div class="bud-art-container">
+            <img class="bud-pixel-canvas" src="${p.imgData}" title="Tap to Rotate 3D Snake" onclick="openInspectModal(${p.seedInt}, '${p.role}', ${p.tierIndex}, ${p.mIdx}, ${p.pIdx ?? 0}, ${p.bIdx ?? 0}, '${safeName}')">
+            <div style="flex:1;">
+              <div style="font-size:10px; font-weight:bold; color:var(--status-green);">${morphTag}</div>
+              <div style="font-size:9px; color:var(--silver-bright);">Length: ${p.capacity} ft // Val: $${fmt(p.value)}</div>
+              <div style="font-size:8.5px; color:var(--silver-dim);">Tap thumbnail for 60FPS 3D View</div>
+            </div>
+            <button class="btn btn-purple" style="padding:4px 6px; font-size:9px;" onclick="snapGalleryPic('${p.uid}')">📸 Vault</button>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; font-size:8.5px; font-family:monospace; color:var(--silver-dim);">
+            <span>SCALE HEALTH: ${p.condition.toFixed(0)}%</span>
+            <span id="st-${p.uid}">STATUS: <strong style="color:#fff;">${p.status}</strong></span>
+          </div>
+          
+          <div style="display:flex; flex-direction:column; gap:3px;">${rtSel}${piSel}</div>
+          ${p.status==='IN_FLIGHT'?`<div class="flight-bar-bg"><div id="bar-${p.uid}" class="flight-bar-fill"></div></div>`:''}
+          
+          <div style="display:flex; justify-content:space-between; margin-top:3px;">
+            <div style="display:flex; gap:3px;">
+              <button class="btn" style="padding:3px 5px; font-size:8px;" onclick="exportStrain('${p.uid}')">Code</button>
+              <button class="btn btn-purple" style="padding:3px 5px; font-size:8px;" ${p.status==='IN_FLIGHT'?'disabled':''} onclick="initAuction('${p.uid}', 'plane')">Auction</button>
+              <button class="btn btn-danger" style="padding:3px 5px; font-size:8px;" ${p.status==='IN_FLIGHT'?'disabled':''} onclick="consumeStrain('${p.uid}')">Sell Local</button>
+            </div>
+            <div style="display:flex; gap:3px;">
+              <button class="btn" style="padding:3px 6px; font-size:8px;" ${p.status==='IN_FLIGHT'?'disabled':''} onclick="maintainAirframe('${p.uid}')">Soak</button>
+              <button class="btn btn-green" style="padding:4px 8px; font-size:8.5px;" ${p.status==='IN_FLIGHT'||!p.assignedRoute||!p.assignedPilot?'disabled':''} onclick="dispatchFlight('${p.uid}')">Exhibit</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function consumeStrain(uid) {
+    let i = State.fleet.findIndex(x=>x.uid===uid); if(i===-1) return;
+    let val = Math.floor(State.fleet[i].value * 0.5); State.funds+=val;
+    if(State.fleet[i].assignedPilot) { let p=State.pilots.find(x=>x.uid===State.fleet[i].assignedPilot); if(p) p.assignedTo=null; }
+    State.fleet.splice(i,1); State.statPlanesScrapped++;
+    toast(`Rehomed locally. Yielded $${fmt(val)}.`); updateHUD(); renderFleet();
+  }
+
+  function quickSellStrains(maxT) {
+    let t = State.fleet.filter(s=>s.tierIndex<=maxT && s.status==='READY');
+    if(t.length===0){toast("No eligible snakes in tier bracket.");return;}
+    let tot=0; t.forEach(s=>{
+      tot+=Math.floor(s.value*0.5);
+      if(s.assignedPilot) { let p=State.pilots.find(x=>x.uid===s.assignedPilot); if(p) p.assignedTo=null; }
+      State.statPlanesScrapped++;
+    });
+    State.fleet = State.fleet.filter(s=>s.tierIndex>maxT || s.status!=='READY');
+    State.funds+=tot; toast(`Sold ${t.length} snakes locally for $${fmt(tot)}.`); updateHUD(); renderFleet(); renderPilots();
+  }
+
+  /* ================= SERPENTARIUM GALLERY ================= */
+  function snapGalleryPic(uid) {
+    let p = State.fleet.find(x => x.uid === uid);
+    if(!p) return;
+    ensureTreeImage(p);
+    
+    State.gallery.push({
+      gid: "gal_" + Date.now() + Math.floor(Math.random()*1000),
+      seedInt: p.seedInt, mIdx: p.mIdx, pIdx: p.pIdx ?? 0, bIdx: p.bIdx ?? 0,
+      role: p.role, tierIdx: p.tierIndex,
+      name: p.name, tierName: p.tierName, tierColor: p.tierColor,
+      locked: true, imgData: p.imgData
+    });
+    
+    toast(`📸 Snake showcased in Serpentarium!`);
+    if($('tab-gallery').classList.contains('active')) renderGallery();
+  }
+
+  function toggleGalleryLock(gid) {
+    let g = State.gallery.find(x => x.gid === gid);
+    if(g) { g.locked = !g.locked; renderGallery(); }
+  }
+
+  function deleteGalleryPic(gid) {
+    let idx = State.gallery.findIndex(x => x.gid === gid);
+    if(idx > -1) {
+       State.gallery.splice(idx, 1);
+       toast(`Snake removed from Serpentarium.`);
+       renderGallery();
+    }
+  }
+
+  function renderGallery() {
+    const list = $('gallery-grid'); if(!list) return; list.innerHTML = '';
+    
+    if(State.gallery.length === 0) { 
+        list.innerHTML=`<div style="text-align:center; padding:20px; color:var(--silver-dim); font-size:11px;">Your Serpentarium is empty. Vault prized snakes from your Racks!</div>`; 
+        return; 
+    }
+
+    State.gallery.forEach(g => {
+      ensureTreeImage(g);
+      let rCol = g.role === 'COBRA' ? '#a855f7' : g.role === 'RATTLER' ? '#f59e0b' : g.role === 'VIPER' ? '#ef4444' : g.role === 'ARBOREAL' ? '#22c55e' : g.role === 'PYTHON' ? '#fbbf24' : '#06b6d4';
+      const safeName = g.name.replace(/'/g, "\\'");
+      
+      list.innerHTML += `
+        <div class="strain-card" style="border-color:${g.locked ? 'var(--status-green)' : g.tierColor};">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:${g.tierColor}; font-weight:bold; font-size:10px;">[${g.tierName}]</span>
+            <span class="badge" style="color:${rCol}; border-color:${rCol};">${g.role}</span>
+          </div>
+          <div style="display:flex; justify-content:center; padding:10px 0;">
+             <img src="${g.imgData}" onclick="openInspectModal(${g.seedInt}, '${g.role}', ${g.tierIdx}, ${g.mIdx}, ${g.pIdx ?? 0}, ${g.bIdx ?? 0}, '${safeName}')" style="width:160px; height:160px; image-rendering:pixelated; background:#000; border:1px solid #142014; border-radius:4px; cursor:zoom-in;" />
+          </div>
+          <div style="text-align:center; font-size:14px; font-weight:900; color:#fff;">${g.name}</div>
+          <div style="text-align:center; font-size:9px; color:var(--silver-dim); margin-bottom: 8px;">Tap Image for 3D Voxel Inspection</div>
+          <div style="display:flex; justify-content:space-between; gap: 4px;">
+            <button class="btn" style="flex:1;" onclick="toggleGalleryLock('${g.gid}')">${g.locked ? 'UNLOCK 🔓' : 'LOCK 🔒'}</button>
+            <button class="btn btn-danger" style="flex:1;" ${g.locked ? 'disabled' : ''} onclick="deleteGalleryPic('${g.gid}')">REMOVE</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  /* ================= HANDLERS ROSTER ================= */
+  function sortPilots(mode) { State.sortPilotsMode = mode; renderPilots(); }
+  function filterPilotTier(val) { State.filterPilotTier = val; renderPilots(); }
+
+  function renderPilots() {
+    const grid = $('pilots-grid'); if(!grid) return; grid.innerHTML = '';
+    
+    let filtered = [...State.pilots];
+    if(State.filterPilotTier !== 'ALL') filtered = filtered.filter(p => p.tierIndex === parseInt(State.filterPilotTier));
+    if(filtered.length===0) { grid.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--silver-dim); font-size:11px;">No handlers match filter criteria.</div>`; return; }
+
+    if(State.sortPilotsMode==='val') filtered.sort((a,b)=>b.value-a.value);
+    if(State.sortPilotsMode==='tier') filtered.sort((a,b)=>b.tierIndex-a.tierIndex);
+    
+    filtered.forEach(p => {
+      grid.innerHTML += `
+        <div class="strain-card" style="border-color:${p.tierColor};">
+          <div class="stat-block" style="display:flex; justify-content:space-between;">
+            <span style="color:${p.tierColor}; font-weight:bold; font-size:9.5px;">${p.tierName}</span>
+            <span style="color:var(--status-green); font-size:9.5px;">[${p.bType}] +${fmt(p.bonus)}%</span>
+          </div>
+          <div style="font-size:12px; font-weight:900; color:#fff;">${p.name} ${p.locked?'[🔒]':''}</div>
+          <div style="font-size:9px; color:var(--silver-dim);">${p.assignedTo ? `Handling: ${p.assignedTo}` : 'Standby / Unassigned'}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <span class="stat-block" style="font-size:10px; color:var(--silver-bright); font-weight:bold;">VAL: $${fmt(p.value)}</span>
+            <div style="display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end;">
+              <button class="btn" style="padding:3px 5px; font-size:8px;" onclick="exportCourier('${p.uid}')">Trade</button>
+              <button class="btn" style="padding:3px 5px; font-size:8px;" onclick="togglePilotLock('${p.uid}')">${p.locked?'Unlock':'Lock'}</button>
+              ${!p.assignedTo&&!p.locked?`<button class="btn btn-purple" style="padding:3px 5px; font-size:8px;" onclick="initAuction('${p.uid}', 'pilot')">Auction</button><button class="btn btn-danger" style="padding:3px 5px; font-size:8px;" onclick="sellPilot('${p.uid}')">Fire</button>`:''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+  function togglePilotLock(uid) { let p=State.pilots.find(x=>x.uid===uid); if(p){p.locked=!p.locked; renderPilots();} }
+  function sellPilot(uid) {
+    let idx = State.pilots.findIndex(s=>s.uid===uid);
+    if(idx>-1) { let v=Math.floor(State.pilots[idx].value*0.5); State.funds+=v; State.pilots.splice(idx,1); toast(`Fired. Severance recovered $${fmt(v)}.`); updateHUD(); renderPilots(); renderFleet(); }
+  }
+  function quickSellPilots(maxT) {
+    let ts = State.pilots.filter(s=>s.tierIndex<=maxT && !s.assignedTo && !s.locked);
+    if(ts.length===0){toast("No eligible handlers.");return;}
+    let tot=0; ts.forEach(s=>tot+=Math.floor(s.value*0.5));
+    State.pilots = State.pilots.filter(s=>s.tierIndex>maxT || s.assignedTo || s.locked);
+    State.funds+=tot; toast(`Fired ${ts.length} handlers. Recovered $${fmt(tot)}.`); updateHUD(); renderPilots();
+  }
+
+  /* ================= REPTILE EXPOS (ROUTES) ================= */
+  function filterRouteCategory(val) { State.filterRouteCat = val; renderRoutes(); }
+
+  function renderRoutes() {
+    const list = $('routes-list'); if(!list) return; list.innerHTML = '';
+    let filtered = State.filterRouteCat === 'ALL' ? State.routes : State.routes.filter(r => r.role === State.filterRouteCat);
+
+    filtered.forEach(r => {
+      let rCol = r.role === 'COBRA' ? '#a855f7' : r.role === 'RATTLER' ? '#f59e0b' : r.role === 'VIPER' ? '#ef4444' : r.role === 'ARBOREAL' ? '#22c55e' : r.role === 'PYTHON' ? '#fbbf24' : '#06b6d4';
+      let yieldM = 1.0 + (State.upgrades.mkt*0.05);
+      let baseYield = r.dist * 165 * yieldM;
+      let fuelCost = ((r.dist * 0.22) * (1 - Math.min(0.7, State.upgrades.eng*0.02))) * State.fuelSpotPrice;
+      let netProfit = baseYield - fuelCost;
+
+      list.innerHTML += `
+        <div class="route-row">
+          <div style="flex:1;">
+            <div style="font-weight:900; color:#fff;">${r.name} <span class="badge" style="margin-left:4px; color:${rCol}; border-color:${rCol};">${r.role}</span></div>
+            <div style="font-size:9px; color:var(--silver-dim); font-family:monospace; margin-top:2px;">
+              ${r.dist.toLocaleString()} MILES // Circuit: ${r.minTier}
+            </div>
+            <div style="font-size:9px; color:var(--silver-dim); font-family:monospace; margin-top:2px;">
+              Payout: $${fmt(baseYield)} | Feed/Transit: -$${fmt(fuelCost)}
+            </div>
+            <div style="font-size:10px; color:var(--status-green); font-weight:bold; font-family:monospace; margin-top:2px;">
+              Est. Net Profit: ~$${fmt(netProfit)}
+            </div>
+          </div>
+          <div>
+            ${r.unlocked?`<span style="color:var(--status-green); font-weight:bold; font-family:monospace;">BOOKED ✓</span>`:`<button class="btn btn-green" onclick="unlockRoute('${r.id}')">Permit ($${fmt(r.cost)})</button>`}
+          </div>
+        </div>
+      `;
+    });
+  }
+  function unlockRoute(rId) { const r=State.routes.find(x=>x.id===rId); if(!r)return; if(State.funds<r.cost){toast("Insufficient Cash.");return;} State.funds-=r.cost; r.unlocked=true; updateHUD(); renderRoutes(); renderFleet(); }
+
+  /* ================= AUTOMATIONS & VENOM LAB ================= */
+  function toggleAutoLoop() {
+    State.automation.autoDispatch = !State.automation.autoDispatch;
+    toast(`Auto-Expo Circuit: ${State.automation.autoDispatch ? 'ON' : 'OFF'}`);
+    updateAutomationUI();
+  }
+  function toggleAutoMRO() {
+    State.automation.autoMRO = !State.automation.autoMRO;
+    toast(`Auto Humidity & Shed Soak: ${State.automation.autoMRO ? 'ON' : 'OFF'}`);
+    updateAutomationUI();
+  }
+  function toggleAutoRefuel() {
+    State.automation.autoRefuel = !State.automation.autoRefuel;
+    toast(`Auto Feeder Restock: ${State.automation.autoRefuel ? 'ON' : 'OFF'}`);
+    updateAutomationUI();
+  }
+  function updateAutomationUI() {
+    if($('chk-autoloop'))$('chk-autoloop').innerText = State.automation.autoDispatch ? 'ACTIVE' : 'ENABLE';
+    if($('chk-automro'))$('chk-automro').innerText = State.automation.autoMRO ? 'ACTIVE' : 'ENABLE';
+    if($('chk-autorefuel'))$('chk-autorefuel').innerText = State.automation.autoRefuel ? 'ACTIVE' : 'ENABLE';
+    renderMilestones();
+    renderSideMissions();
+  }
+
+  function generateSideMissions() {
+    let unlocked = State.routes.filter(r => r.unlocked);
+    if(unlocked.length === 0) unlocked = State.routes; 
+    
+    State.sideMissions = [];
+    for(let i=0; i<3; i++) {
+        let rt = unlocked[Math.floor(Math.random() * unlocked.length)];
+        State.sideMissions.push({
+            id: "sm_" + Date.now() + i,
+            title: `Contract: ${rt.name}`,
+            desc: `Antivenom lab & collectors request a prized ${rt.role} at ${rt.name}.`,
+            reqRoute: rt.id, reqRole: rt.role, readyToClaim: false,
+            rewardCash: Math.floor(rt.dist * 500) + 1000000,
+            rewardTier: Math.min(9, Math.floor(rt.dist / 1000))
+        });
+    }
+  }
+
+  function refreshSideMissions() {
+    generateSideMissions();
+    renderSideMissions();
+    toast("Lab contracts cycled.");
+  }
+
+  function renderSideMissions() {
+    const list = $('side-missions-list'); if(!list) return; list.innerHTML = '';
+    State.sideMissions.forEach((m, idx) => {
+      let isReady = m.readyToClaim;
+      let rText = `+$${fmt(m.rewardCash)} & Free T${m.rewardTier+1} Clutch`;
+      list.innerHTML += `
+        <div class="check-item ${isReady ? 'done' : ''}">
+          <div>
+            <div style="font-weight:bold; color:#fff;">${m.title}</div>
+            <div style="font-size:9.5px; color:var(--silver-dim);">${m.desc}</div>
+            <div style="font-size:9.5px; color:var(--status-green); font-weight:bold; margin-top:2px;">Grant: ${rText}</div>
+          </div>
+          <div>
+            <button class="btn btn-green" ${isReady ? '' : 'disabled'} onclick="claimSideMission(${idx})">COLLECT</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function claimSideMission(idx) {
+    let m = State.sideMissions[idx];
+    if(!m || !m.readyToClaim) return;
+    
+    State.funds += m.rewardCash;
+    let bonusStrain = harvestStrain(m.rewardTier); 
+    State.fleet.push(bonusStrain);
+    toast(`Contract Fulfilled! +$${fmt(m.rewardCash)} & ${bonusStrain.name} acquired!`);
+
+    State.sideMissions.splice(idx, 1);
+    
+    let unlocked = State.routes.filter(r => r.unlocked);
+    if(unlocked.length === 0) unlocked = State.routes;
+    let rt = unlocked[Math.floor(Math.random() * unlocked.length)];
+    State.sideMissions.push({
+        id: "sm_" + Date.now(),
+        title: `Contract: ${rt.name}`,
+        desc: `Antivenom lab & collectors request a prized ${rt.role} at ${rt.name}.`,
+        reqRoute: rt.id, reqRole: rt.role, readyToClaim: false,
+        rewardCash: Math.floor(rt.dist * 500) + 1000000,
+        rewardTier: Math.min(9, Math.floor(rt.dist / 1000))
+    });
+
+    updateHUD(); renderSideMissions();
+  }
+
+  function renderMilestones() {
+    const list = $('milestone-list'); if(!list) return; list.innerHTML = '';
+    MILESTONES.forEach(m => {
+      let isClaimed = State.claimedMilestones.includes(m.id);
+      let canClaim = !isClaimed && m.req(State);
+      list.innerHTML += `
+        <div class="check-item ${isClaimed ? 'done' : ''}">
+          <div>
+            <div style="font-weight:bold; color:${isClaimed ? 'var(--status-green)' : '#fff'};">${isClaimed ? '✓ ' : ''}${m.title}</div>
+            <div style="font-size:9.5px; color:var(--silver-dim);">${m.desc}</div>
+            <div style="font-size:9.5px; color:var(--status-amber); font-weight:bold; margin-top:1px;">Reward: +$${fmt(m.reward)}</div>
+          </div>
+          <div>
+            ${isClaimed 
+              ? `<span style="color:var(--status-green); font-weight:bold; font-size:9px;">CLAIMED</span>` 
+              : `<button class="btn btn-green" ${canClaim ? '' : 'disabled'} onclick="claimMilestone('${m.id}')">CLAIM</button>`
+            }
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function claimMilestone(mId) {
+    let m = MILESTONES.find(x => x.id === mId);
+    if(!m || State.claimedMilestones.includes(mId) || !m.req(State)) return;
+    State.claimedMilestones.push(mId);
+    State.funds += m.reward;
+    toast(`Milestone Achieved: +$${fmt(m.reward)}`);
+    updateHUD(); renderMilestones();
+  }
+
+  /* ================= UPGRADES ================= */
+  function getUpgCost(type, lvl) { return type==='mkt' ? Math.floor(100000*Math.pow(1.5,lvl)) : Math.floor(150000*Math.pow(1.6,lvl)); }
+  function renderUpgrades() {
+    let mC = getUpgCost('mkt', State.upgrades.mkt); let eC = getUpgCost('eng', State.upgrades.eng);
+    if($('upg-mkt-lvl'))$('upg-mkt-lvl').innerText=State.upgrades.mkt; 
+    if($('upg-mkt-pct'))$('upg-mkt-pct').innerText=State.upgrades.mkt*5; 
+    if($('upg-mkt-cost'))$('upg-mkt-cost').innerText=fmt(mC);
+    
+    if($('upg-eng-lvl'))$('upg-eng-lvl').innerText=State.upgrades.eng; 
+    if($('upg-eng-pct'))$('upg-eng-pct').innerText=Math.min(70, State.upgrades.eng*2); 
+    if($('upg-eng-cost'))$('upg-eng-cost').innerText=fmt(eC);
+  }
+  function buyUpgrade(type) {
+    let cost = getUpgCost(type, State.upgrades[type]);
+    if(State.funds < cost) { toast("Insufficient Cash."); return; }
+    State.funds -= cost; State.upgrades[type]++;
+    updateHUD(); renderUpgrades(); toast("Facility upgraded.");
+  }
+
+  /* ================= EXPO DISPATCH ================= */
+  function dispatchFlight(pUid) {
+    const p = State.fleet.find(x=>x.uid===pUid); if(!p||p.status==='IN_FLIGHT'||!p.assignedRoute||!p.assignedPilot)return;
+    const r = State.routes.find(x=>x.id===p.assignedRoute); const pl = State.pilots.find(x=>x.uid===p.assignedPilot); if(!r||!pl)return;
+    
+    if(p.condition < 45) {
+      if(State.automation.autoMRO && State.funds >= Math.floor((100-p.condition)*2500)) {
+        maintainAirframe(p.uid);
+      } else {
+        toast("[STUCK SHED] Humidity low. Must Soak & Mist Snake."); return;
+      }
+    }
+
+    let yieldM = 1.0 + (State.upgrades.mkt*0.05); let speedD = 1.0; let fuelD = 1.0; let safeD = 1.0;
+    if(pl.bType==='VENOM') yieldM *= (1 + pl.bonus/100);
+    if(pl.bType==='SPEED') speedD = 1 + pl.bonus/100; 
+    if(pl.bType==='FEED') fuelD = 1 + pl.bonus/100;
+    if(pl.bType==='CARE') safeD = 1 + pl.bonus/100;
+
+    let baseMs = Math.max(5000, Math.min(90000, (r.dist/8000)*90000));
+    let msTime = Math.max(1000, baseMs / speedD); 
+
+    let fBurn = Math.floor((r.dist * 0.22) * (1 - Math.min(0.7, State.upgrades.eng*0.02)) / fuelD);
+    
+    if(State.fuelReserve < fBurn) {
+      if(State.automation.autoRefuel && State.funds >= 100000 * State.fuelSpotPrice) {
+        State.funds -= 100000 * State.fuelSpotPrice;
+        State.fuelReserve += 100000;
+      } else {
+        toast("Insufficient Feeders."); return;
+      }
+    }
+    State.fuelReserve -= fBurn;
+
+    let bRev = r.dist * 165 * yieldM;
+    
+    p.status='IN_FLIGHT'; p.flightStart=Date.now(); p.flightDuration=msTime; p.flightEnd=p.flightStart+msTime; p.expRev=bRev; p.wear=10/safeD;
+    
+    State.sideMissions.forEach(m => {
+        if(!m.readyToClaim && p.assignedRoute === m.reqRoute && p.role === m.reqRole) {
+            m.readyToClaim = true;
+            toast(`Contract Ready: ${m.title}`);
+            if($('tab-checklist').classList.contains('active')) renderSideMissions();
+        }
+    });
+
+    needsFleetRender = true; updateHUD();
+  }
+  function dispatchAll() { State.fleet.filter(p=>p.status==='READY'&&p.assignedRoute&&p.assignedPilot).forEach(p=>dispatchFlight(p.uid)); }
+  function maintainAirframe(pUid) { const p=State.fleet.find(x=>x.uid===pUid); if(!p||p.status==='IN_FLIGHT')return; let c=Math.floor((100-p.condition)*2500); if(State.funds<c)return; State.funds-=c; p.condition=100; updateHUD(); needsFleetRender = true; }
+  function maintainAll() { let c=0; State.fleet.filter(p=>p.condition<90&&p.status!=='IN_FLIGHT').forEach(p=>c+=Math.floor((100-p.condition)*2500)); if(c===0||State.funds<c)return; State.funds-=c; State.fleet.forEach(p=>p.condition=100); updateHUD(); renderFleet(); }
+
+  /* ================= 10-LANE MORPH AUCTIONS ================= */
+  function initAuction(uid, type) {
+    if(State.auctions.length>=10){toast("Auction house full.");return;}
+    let item;
+    if(type==='plane') { let i=State.fleet.findIndex(x=>x.uid===uid); if(i===-1)return; item=State.fleet[i]; if(item.assignedPilot){ let px=State.pilots.find(x=>x.uid===item.assignedPilot); if(px)px.assignedTo=null; } State.fleet.splice(i,1); }
+    if(type==='pilot') { let i=State.pilots.findIndex(x=>x.uid===uid); if(i===-1)return; item=State.pilots[i]; State.pilots.splice(i,1); }
+    
+    State.auctions.push({ item:item, type:type, baseVal:item.value, timer:20.0, currentBid:Math.floor(item.value*0.9), log:[] });
+    updateHUD(); renderAuctions(); renderFleet(); renderPilots(); toast("Moved to Morph Auctions.");
+  }
+  
+  function fillAuctions(type) {
+    let a=10-State.auctions.length; if(a<=0) { toast("Auction house full."); return; }
+    
+    let c = type==='planes' 
+      ? State.fleet.filter(p=>p.status==='READY'&&!p.assignedPilot).sort((x,y)=>x.value-y.value) 
+      : State.pilots.filter(p=>!p.assignedTo&&!p.locked).sort((x,y)=>x.value-y.value);
+        
+    if(c.length===0){toast("No eligible snakes/handlers available.");return;}
+    
+    let loaded = 0;
+    c.slice(0,a).forEach(item=>{ 
+      if(type==='planes'){ let i=State.fleet.findIndex(x=>x.uid===item.uid); State.fleet.splice(i,1); }
+      if(type==='pilots'){ let i=State.pilots.findIndex(x=>x.uid===item.uid); State.pilots.splice(i,1); }
+      State.auctions.push({item:item, type:type === 'planes' ? 'plane' : 'pilot', baseVal:item.value, timer:20.0, currentBid:Math.floor(item.value*0.9), log:[]}); 
+      loaded++;
+    });
+    
+    updateHUD(); renderPilots(); renderFleet(); renderAuctions(); 
+    toast(`Loaded ${loaded} lots to Morph Auctions.`);
+  }
+
+  function renderAuctions() {
+    const b=$('auction-board'); if(!b)return; $('auction-count').innerText=State.auctions.length; b.innerHTML='';$('auction-idle').style.display = State.auctions.length===0 ? 'block' : 'none';
+    State.auctions.forEach((a) => {
+      if (a.type === 'plane' || a.type === 'planes') ensureTreeImage(a.item);
+      let hLog = a.log.map(l=>`<div>${l}</div>`).join('');
+      let col = a.item.tierColor || '#fff';
+      
+      b.innerHTML+=`
+        <div class="auction-slot">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              ${(a.type === 'plane' || a.type === 'planes') ? `<img src="${a.item.imgData}" style="width:40px; height:40px; image-rendering:pixelated; background:#000; border:1px solid #142014;" />` : ''}
+              <div>
+                <div style="font-size:12px;font-weight:bold;color:${col};">${a.item.name}</div>
+                <div class="stat-block" style="font-size:9px;">VAL: $${fmt(a.baseVal)}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div id="auc-timer-${a.item.uid}" style="font-size:8.5px;color:var(--silver-dim);font-weight:bold;">TIME [${a.timer.toFixed(1)}s]</div>
+              <div id="auc-bid-${a.item.uid}" style="font-size:14px;font-weight:bold;color:var(--status-green);font-family:monospace;">$${fmt(a.currentBid)}</div>
+            </div>
+          </div>
+          <div class="auction-timer-bg"><div id="auc-bar-${a.item.uid}" class="auction-timer-bar" style="width:${(a.timer/20)*100}%;"></div></div>
+          <div class="auction-log">${hLog}</div>
+        </div>
+      `;
+    });
+  }
+
+  /* ================= GAME LOOP ================= */
+  const FACTIONS = ["Antivenom Institute","Tinley Park VIP","Tokyo Reptile Guild","Private Serpentarium"];
+  function gameTick() {
+    let n = Date.now();
+    let auctionChanged = false;
+    
+    // Market Timer
+    State.marketTimer -= 0.1;
+    let mT = $('market-timer'); if(mT) mT.innerText = Math.max(0, State.marketTimer).toFixed(1);
+    if(State.marketTimer <= 0) { State.marketTimer = 10.0; refreshMarket(); }
+
+    // Exhibitions
+    State.fleet.forEach(p => {
+      if(p.status==='IN_FLIGHT') {
+        let pct = ((n-p.flightStart)/p.flightDuration)*100;
+        if(pct>=100) { 
+          p.status='READY'; State.funds+=p.expRev; p.condition=Math.max(10, p.condition-p.wear); updateHUD(); 
+          let st=$(`st-${p.uid}`); if(st) st.innerHTML=`STATUS: <strong style="color:#fff;">READY</strong>`; 
+          let b=$(`bar-${p.uid}`); if(b){b.style.width='0%'; b.parentElement.style.display='none';} 
+          
+          if(State.automation.autoDispatch && p.assignedRoute && p.assignedPilot) {
+            setTimeout(() => dispatchFlight(p.uid), 200);
+          } else {
+            needsFleetRender = true; 
+          }
+        } 
+        else { let b=$(`bar-${p.uid}`); if(b) b.style.width=pct+'%'; }
+      }
+    });
+
+    if(needsFleetRender) {
+      if($('tab-fleet').classList.contains('active')) renderFleet();
+      needsFleetRender = false;
+    }
+
+    // Auctions
+    if(State.auctions.length>0) {
+      for(let i=State.auctions.length-1; i>=0; i--) {
+        let a=State.auctions[i]; a.timer-=0.1; 
+        
+        let uiT = $(`auc-timer-${a.item.uid}`);
+        let uiB = $(`auc-bar-${a.item.uid}`);
+        let uiBid = $(`auc-bid-${a.item.uid}`);
+
+        if(a.timer>0 && Math.random()<0.10) {
+          let f=FACTIONS[Math.floor(Math.random()*FACTIONS.length)]; let m=1.05+(Math.random()*0.10);
+          if(Math.random()<0.015) { m=2.0+(Math.random()*18.0); a.log.push(`<span style="color:var(--status-amber);">[MORPH WAR] Bid Spike!</span>`); }
+          let nB=Math.floor(a.currentBid*m); if(nB<=a.currentBid) nB=a.currentBid+1; a.currentBid=nB;
+          a.log.push(`<span style="color:var(--silver-bright);">[${f}] bids $${fmt(a.currentBid)}</span>`);
+          if(a.log.length>3) a.log.shift();
+          if(a.timer<=1.0){ a.timer=3.0; a.log.push(`<span style="color:var(--status-red);">[OVERTIME] Reset to 3s!</span>`); }
+          if(uiBid) uiBid.innerText = "$" + fmt(a.currentBid);
+          auctionChanged = true;
+        } else {
+          if(uiT) uiT.innerText = `TIME [${Math.max(0, a.timer).toFixed(1)}s]`;
+          if(uiB) { uiB.style.width = ((a.timer/20)*100) + '%'; uiB.style.background = a.timer <= 3 ? 'var(--status-red)' : 'var(--status-green)'; }
+        }
+
+        if(a.timer<=0){ 
+          State.funds+=a.currentBid; State.statAuctionsSold++;
+          toast(`SOLD for $${fmt(a.currentBid)}!`); 
+          State.auctions.splice(i,1); updateHUD(); 
+          auctionChanged = true;
+        }
+      }
+      
+      if(auctionChanged && $('tab-auction').classList.contains('active')) renderAuctions();
+    }
+  }
+
+  /* ================= INIT & NAVIGATION ================= */
+  function setTab(tabId) {
+    document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); if(b.getAttribute('onclick').includes(tabId)) b.classList.add('active'); });
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    const target = $('tab-'+tabId); if(target) target.classList.add('active');
+
+    if(tabId==='fleet') renderFleet();
+    if(tabId==='pilots') renderPilots();
+    if(tabId==='routes') renderRoutes();
+    if(tabId==='auction') renderAuctions();
+    if(tabId==='checklist') updateAutomationUI();
+    if(tabId==='upgrades') renderUpgrades();
+    if(tabId==='gallery') renderGallery();
+  }
+  function godMode() {
+    State.funds += 2000000000; State.fuelReserve += 10000000;
+    State.fleet.forEach(p => p.condition = 100);
+    toast("HERPETOLOGIST: +$2B Cash, +10M Feeders, Racks Restored.");
+    updateHUD(); renderFleet();
+  }
+
+  function initUI() {
+    if(!State.gallery) State.gallery = [];
+    if(!State.routes || State.routes.length < 400) State.routes = generateRoutes();
+    if(!State.sideMissions || State.sideMissions.length === 0) generateSideMissions();
+    updateHUD(); refreshMarket();
+    if(globalInterval) clearInterval(globalInterval); globalInterval = setInterval(gameTick, 100);
+  }
+  initUI();
+</script>
+</body>
+</html>
